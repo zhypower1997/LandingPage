@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPC Food Photo Studio — não perca pedidos por foto ruim</title>
+  <meta name="description" content="A IA transforma fotos simples dos seus pratos em imagens bonitas, fiéis e prontas para vender no delivery." />
+  <style>
+    :root {
+      --bg: #fffaf2;
+      --surface: #fffefd;
+      --ink: #1f130e;
+      --muted: #6c5d52;
+      --line: rgba(31, 19, 14, .12);
+      --brand: #f2541b;
+      --brand-dark: #9e3219;
+      --gold: #ffcb62;
+      --green: #14875a;
+      --plum: #3a2435;
+      --teal: #0c5d61;
+      --mint: #24c28a;
+      --shadow: 0 26px 80px rgba(74, 38, 15, .18);
+      --container: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(120deg, rgba(36, 194, 138, .08) 0 12%, transparent 12% 100%),
+        linear-gradient(165deg, rgba(242, 84, 27, .16) 0 22%, transparent 22% 100%),
+        linear-gradient(180deg, #fff0d8 0, #fffaf2 520px, #fffefd 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(31, 19, 14, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 19, 14, .04) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.6), transparent 48%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .container { width: min(var(--container), calc(100% - 40px)); margin: 0 auto; }
+
+    .nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 250, 242, .78);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 19px;
+      font-weight: 900;
+    }
+
+    .brand-logo {
+      width: 124px;
+      height: auto;
+      display: block;
+      flex: 0 0 auto;
+    }
+
+    .links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 14px;
+      font-weight: 760;
+      color: #5b4d44;
+    }
+
+    .nav-actions,
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 0 18px;
+      font-weight: 900;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { color: #fff; background: linear-gradient(135deg, #ff6b22, #d83b12); box-shadow: 0 18px 42px rgba(242, 84, 27, .34); }
+    .btn-secondary { background: rgba(255, 255, 255, .78); border-color: var(--line); box-shadow: 0 12px 28px rgba(74, 38, 15, .07); }
+    .btn-dark { color: #fffaf2; background: var(--ink); box-shadow: 0 14px 34px rgba(31, 19, 14, .22); }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 64px 0 44px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 92px;
+      background: linear-gradient(180deg, transparent, #fffefd);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+      align-items: center;
+      gap: 42px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      margin: 0 0 18px;
+      padding: 9px 12px;
+      border: 1px solid rgba(20, 135, 90, .22);
+      border-radius: 999px;
+      color: #0a5d3d;
+      background: rgba(36, 194, 138, .12);
+      font-size: 13px;
+      font-weight: 920;
+      box-shadow: 0 12px 30px rgba(20, 135, 90, .08);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    .hero h1 {
+      margin-bottom: 20px;
+      max-width: 660px;
+      font-size: clamp(50px, 7.4vw, 96px);
+      line-height: .88;
+      letter-spacing: -0.068em;
+      font-weight: 980;
+    }
+
+    .hero h1 span { color: var(--brand); }
+    .lead {
+      max-width: 610px;
+      margin-bottom: 26px;
+      color: #584b42;
+      font-size: clamp(19px, 2vw, 23px);
+      line-height: 1.42;
+    }
+
+    .proof-row {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 620px;
+    }
+
+    .proof {
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px 14px;
+      background: rgba(255, 255, 255, .82);
+      box-shadow: 0 16px 38px rgba(74, 38, 15, .08);
+    }
+
+    .proof b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 18px;
+      letter-spacing: -0.025em;
+    }
+
+    .proof span { color: var(--muted); font-size: 12px; font-weight: 740; }
+
+    .impact-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .impact-card {
+      border: 1px solid rgba(31, 19, 14, .1);
+      border-radius: 20px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,246,231,.92));
+      box-shadow: 0 18px 42px rgba(74, 38, 15, .1);
+    }
+
+    .impact-card b {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.045em;
+      color: var(--brand);
+    }
+
+    .impact-card span {
+      color: #5d4f46;
+      font-size: 13px;
+      font-weight: 820;
+    }
+
+    .studio {
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, .86);
+      border-radius: 36px;
+      padding: 16px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,242,218,.9));
+      box-shadow: 0 34px 95px rgba(74, 38, 15, .22);
+      transform: rotate(1deg);
+    }
+
+    .studio::before {
+      content: "";
+      position: absolute;
+      inset: 14px -14px -14px 20px;
+      z-index: -1;
+      border-radius: 34px;
+      background: linear-gradient(135deg, var(--mint), var(--brand));
+      opacity: .18;
+    }
+
+    .studio-bar {
+      height: 40px;
+      padding: 0 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #706157;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .traffic { display: flex; gap: 6px; }
+    .traffic i { width: 10px; height: 10px; border-radius: 999px; background: #ff625d; }
+    .traffic i:nth-child(2) { background: #ffbc35; }
+    .traffic i:nth-child(3) { background: #2dc86d; }
+
+    .compare {
+      --split: 48%;
+      position: relative;
+      min-height: 470px;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #7b6355;
+      cursor: ew-resize;
+      user-select: none;
+      touch-action: none;
+      border: 1px solid rgba(31, 19, 14, .12);
+      box-shadow: inset 0 -70px 120px rgba(31, 19, 14, .22);
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .before {
+      background:
+        linear-gradient(25deg, rgba(0, 0, 0, .22), transparent 48%),
+        linear-gradient(135deg, #8c7365, #b79272);
+      filter: saturate(.68) blur(.35px);
+    }
+
+    .after {
+      clip-path: inset(0 0 0 var(--split));
+      background:
+        radial-gradient(circle at 73% 18%, rgba(255,255,255,.9), transparent 16%),
+        linear-gradient(135deg, #fff2cb, #ffc45d 58%, #743319);
+      filter: saturate(1.12) contrast(1.04);
+    }
+
+    .plate {
+      width: min(70%, 370px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 48%, #9d3415 0 16%, #d84b16 17% 30%, #f5cf87 31% 45%, #fff8e9 46% 65%, transparent 66%),
+        #fff7ec;
+      box-shadow: 0 24px 42px rgba(60, 27, 13, .28);
+      transform: rotate(-8deg);
+      position: relative;
+    }
+
+    .plate::before {
+      content: "";
+      position: absolute;
+      width: 36%;
+      height: 31%;
+      right: 13%;
+      top: 17%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f6c75e, #f39323);
+      box-shadow: -90px 120px 0 -18px rgba(72, 35, 21, .42);
+    }
+
+    .after .plate {
+      transform: rotate(-8deg) scale(1.04);
+      box-shadow: 0 30px 58px rgba(80, 36, 13, .32);
+    }
+
+    .visual-badge,
+    .visual-score {
+      position: absolute;
+      z-index: 8;
+      border: 1px solid rgba(31, 19, 14, .1);
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 18px 44px rgba(31, 19, 14, .16);
+      backdrop-filter: blur(12px);
+    }
+
+    .visual-badge {
+      top: 74px;
+      left: 16px;
+      border-radius: 18px;
+      padding: 13px 15px;
+      transform: rotate(-3deg);
+    }
+
+    .visual-badge b,
+    .visual-score b {
+      display: block;
+      color: var(--brand);
+      font-size: 28px;
+      line-height: .95;
+      letter-spacing: -0.045em;
+    }
+
+    .visual-badge span,
+    .visual-score span {
+      color: #5c4e45;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .visual-score {
+      right: 16px;
+      bottom: 94px;
+      border-radius: 22px;
+      padding: 14px 16px;
+      transform: rotate(3deg);
+    }
+
+    .split-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: var(--split);
+      width: 3px;
+      z-index: 5;
+      background: #fff;
+      box-shadow: 0 0 18px rgba(0, 0, 0, .24);
+    }
+
+    .split-line span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 46px;
+      height: 46px;
+      margin: -23px 0 0 -23px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--brand);
+      background: #fff;
+      font-weight: 950;
+      box-shadow: 0 12px 30px rgba(31, 19, 14, .22);
+    }
+
+    .labels {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 6;
+    }
+
+    .label {
+      border-radius: 999px;
+      padding: 9px 12px;
+      color: #59483e;
+      background: rgba(255, 255, 255, .9);
+      border: 1px solid rgba(31, 19, 14, .1);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .setting {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 13px;
+      background: #fffefd;
+    }
+
+    .setting small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 850;
+    }
+
+    .setting b { font-size: 15px; letter-spacing: -0.02em; }
+
+    .sample-ribbon {
+      position: relative;
+      z-index: 1;
+      margin-top: 28px;
+      overflow: hidden;
+    }
+
+    .sample-track {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .sample-shot {
+      min-height: 128px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(31, 19, 14, .1);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 50% 48%, #d64617 0 18%, #fff2d4 19% 39%, transparent 40%),
+        linear-gradient(135deg, #fff4d9, #ff9c2d 64%, #512516);
+      box-shadow: 0 18px 42px rgba(74, 38, 15, .12);
+    }
+
+    .sample-shot:nth-child(2) {
+      background:
+        radial-gradient(circle at 50% 48%, #c5441b 0 18%, #f6dcc0 19% 39%, transparent 40%),
+        linear-gradient(135deg, #201b19, #8d644a);
+    }
+
+    .sample-shot:nth-child(3) {
+      background:
+        radial-gradient(circle at 50% 48%, #823019 0 18%, #fff0bd 19% 39%, transparent 40%),
+        linear-gradient(135deg, #f9fff1, #24c28a);
+    }
+
+    .sample-shot:nth-child(4) {
+      background:
+        radial-gradient(circle at 50% 48%, #d84b16 0 18%, #fff2d4 19% 39%, transparent 40%),
+        linear-gradient(135deg, #fff7e7, #e84f70 62%, #3a2435);
+    }
+
+    .sample-shot:nth-child(5) {
+      background:
+        radial-gradient(circle at 50% 48%, #c94a18 0 18%, #ffe8b2 19% 39%, transparent 40%),
+        linear-gradient(135deg, #fff1c7, #0c5d61);
+    }
+
+    .sample-shot:nth-child(6) {
+      background:
+        radial-gradient(circle at 50% 48%, #d64617 0 18%, #fff8e8 19% 39%, transparent 40%),
+        linear-gradient(135deg, #fff7e7, #f2541b);
+    }
+
+    .sample-shot span {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      border-radius: 999px;
+      padding: 7px 9px;
+      background: rgba(255,255,255,.9);
+      color: #4f4038;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    section { padding: 74px 0; }
+    .section-head {
+      max-width: 760px;
+      margin: 0 auto 34px;
+      text-align: center;
+    }
+
+    .section-head h2 {
+      margin-bottom: 12px;
+      font-size: clamp(31px, 4vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.052em;
+      font-weight: 950;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.58;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,250,242,.86));
+      box-shadow: 0 18px 52px rgba(74, 38, 15, .09);
+      padding: 22px;
+    }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      margin-bottom: 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      background: var(--teal);
+      font-weight: 950;
+    }
+
+    .card:nth-child(2) .card-icon { background: var(--plum); }
+    .card:nth-child(3) .card-icon { background: var(--brand); }
+    .card h3 { margin-bottom: 9px; font-size: 20px; letter-spacing: -0.032em; }
+    .card p { margin-bottom: 0; color: var(--muted); line-height: 1.56; }
+
+    .benefit-wall {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .benefit {
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 18px;
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.96), rgba(255,244,221,.92));
+      box-shadow: 0 20px 54px rgba(74, 38, 15, .1);
+    }
+
+    .benefit:nth-child(even) {
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.96), rgba(228, 255, 244, .78));
+    }
+
+    .benefit strong {
+      display: block;
+      margin-bottom: 18px;
+      color: var(--brand);
+      font-size: 34px;
+      line-height: .95;
+      letter-spacing: -0.055em;
+    }
+
+    .benefit h3 {
+      margin-bottom: 8px;
+      font-size: 19px;
+      letter-spacing: -0.032em;
+    }
+
+    .benefit p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .dark {
+      color: #fff8ed;
+      background:
+        linear-gradient(135deg, #17100d, #21140f 48%, #0c3f43);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dark::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity: .45;
+    }
+
+    .dark .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .dark .section-head p { color: rgba(255, 248, 237, .72); }
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .step {
+      min-height: 226px;
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.055));
+      box-shadow: 0 24px 70px rgba(0,0,0,.18);
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: #2d160f;
+      background: var(--gold);
+      font-weight: 950;
+    }
+
+    .step h3 { margin-bottom: 9px; font-size: 19px; letter-spacing: -0.03em; }
+    .step p { margin-bottom: 0; color: rgba(255, 248, 237, .72); line-height: 1.54; font-size: 14px; }
+
+    .product {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .product h2 {
+      margin-bottom: 14px;
+      font-size: clamp(31px, 4vw, 50px);
+      line-height: 1;
+      letter-spacing: -0.052em;
+    }
+
+    .product p { color: var(--muted); line-height: 1.6; font-size: 17px; }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .compare-box {
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,250,242,.9));
+      box-shadow: 0 22px 64px rgba(74, 38, 15, .1);
+    }
+
+    .compare-box.highlight {
+      color: #fff8ed;
+      background: linear-gradient(135deg, #21140f, var(--teal) 58%, #14875a);
+      border-color: rgba(255,255,255,.12);
+      transform: translateY(-8px) rotate(.5deg);
+    }
+
+    .compare-box h3 {
+      margin-bottom: 16px;
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .compare-list {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .compare-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid rgba(31, 19, 14, .09);
+      padding-bottom: 12px;
+      color: var(--muted);
+      font-weight: 780;
+    }
+
+    .compare-box.highlight .compare-list li {
+      border-bottom-color: rgba(255,255,255,.13);
+      color: rgba(255, 248, 237, .78);
+    }
+
+    .compare-list b {
+      color: var(--ink);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .compare-box.highlight .compare-list b { color: var(--gold); }
+
+    .dish-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .dish {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 13px;
+      background: #fffefd;
+      color: #5d4f46;
+      font-weight: 900;
+      box-shadow: 0 10px 26px rgba(74, 38, 15, .06);
+    }
+
+    .channels {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    .channel-board {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .channel-card {
+      min-height: 148px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 14px;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(242,84,27,.22), transparent 28%),
+        #fffefd;
+      box-shadow: 0 18px 48px rgba(74, 38, 15, .1);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .channel-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 60px rgba(74, 38, 15, .16);
+    }
+
+    .channel-card:nth-child(2) { background: radial-gradient(circle at 50% 38%, rgba(36,194,138,.24), transparent 28%), #fffefd; }
+    .channel-card:nth-child(3) { background: radial-gradient(circle at 50% 38%, rgba(255,203,98,.34), transparent 28%), #fffefd; }
+    .channel-card:nth-child(4) { background: radial-gradient(circle at 50% 38%, rgba(58,36,53,.18), transparent 28%), #fffefd; }
+    .channel-card:nth-child(5) { background: radial-gradient(circle at 50% 38%, rgba(12,93,97,.2), transparent 28%), #fffefd; }
+    }
+
+    .channel-card b {
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .channel-card span {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .app {
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,246,231,.92));
+      box-shadow: 0 30px 86px rgba(74, 38, 15, .16);
+      padding: 16px;
+    }
+
+    .app-head,
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-head {
+      padding: 4px 4px 14px;
+      color: #746358;
+      font-size: 13px;
+      font-weight: 920;
+    }
+
+    .ok { color: var(--green); }
+    .upload {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 16px;
+      align-items: center;
+      border: 2px dashed rgba(242, 84, 27, .25);
+      border-radius: 22px;
+      background: #fff7e8;
+      padding: 16px;
+    }
+
+    .thumb {
+      height: 108px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 52% 50%, #cf4317 0 28%, #ffe2a1 29% 56%, transparent 57%),
+        linear-gradient(135deg, #8f7161, #e5b375);
+    }
+
+    .upload h3 { margin-bottom: 6px; font-size: 19px; letter-spacing: -0.03em; }
+    .upload p { margin-bottom: 0; font-size: 14px; line-height: 1.45; }
+
+    .rows { margin-top: 12px; display: grid; gap: 10px; }
+    .row {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fffefd;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      border-radius: 999px;
+      padding: 7px 9px;
+      background: #fff0d1;
+      color: #604f43;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .chip.active { color: #fff; background: var(--ink); }
+
+    .outputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .output {
+      min-height: 132px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 48% 47%, #cf4317 0 25%, #fff0cf 26% 52%, transparent 53%),
+        linear-gradient(135deg, #ffedbd, #f69232 64%, #653018);
+    }
+
+    .output:nth-child(2) {
+      background:
+        radial-gradient(circle at 48% 47%, #c64b1e 0 25%, #f6dfbf 26% 52%, transparent 53%),
+        linear-gradient(135deg, #27211f, #80634f);
+    }
+
+    .output:nth-child(3) {
+      background:
+        radial-gradient(circle at 48% 47%, #d84b16 0 25%, #fff4df 26% 52%, transparent 53%),
+        linear-gradient(135deg, #fff7e7, #ea7830 68%, #2d160f);
+    }
+
+    .output span {
+      position: absolute;
+      left: 9px;
+      bottom: 9px;
+      border-radius: 999px;
+      padding: 6px 8px;
+      background: rgba(255,255,255,.92);
+      font-size: 10px;
+      font-weight: 950;
+    }
+
+    .pricing { background: linear-gradient(180deg, #fffefd, #fff4df); }
+    .price-card { display: flex; flex-direction: column; min-height: 372px; }
+    .price-card.featured {
+      color: #fff8ed;
+      background: linear-gradient(135deg, #21140f, #5b2314 56%, #0c5d61);
+      transform: translateY(-14px) scale(1.02);
+      box-shadow: 0 34px 90px rgba(31, 19, 14, .26);
+    }
+
+    .price-name { margin-bottom: 12px; color: var(--brand); font-weight: 950; }
+    .featured .price-name { color: var(--gold); }
+    .price {
+      margin-bottom: 10px;
+      font-size: 38px;
+      font-weight: 950;
+      letter-spacing: -0.052em;
+    }
+
+    .price small { color: var(--muted); font-size: 14px; letter-spacing: 0; }
+    .featured p, .featured .price small { color: rgba(255, 248, 237, .72); }
+    .price-card ul { display: grid; gap: 11px; list-style: none; padding: 0; margin: 0 0 24px; }
+    .price-card li { display: flex; gap: 9px; font-size: 14px; font-weight: 760; }
+    .price-card li::before { content: "✓"; color: var(--green); font-weight: 950; }
+    .featured li::before { color: var(--gold); }
+    .price-card .btn { margin-top: auto; }
+
+    .final { padding: 58px 0 78px; }
+    .cta-box {
+      display: grid;
+      grid-template-columns: 1fr minmax(320px, 450px);
+      gap: 24px;
+      align-items: center;
+      border-radius: 34px;
+      padding: 42px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, #21140f, var(--teal) 48%, var(--brand));
+      box-shadow: 0 34px 95px rgba(31, 19, 14, .24);
+    }
+
+    .cta-box h2 {
+      margin-bottom: 10px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1;
+      letter-spacing: -0.052em;
+    }
+
+    .cta-box p { margin-bottom: 0; color: rgba(255, 255, 255, .76); line-height: 1.55; }
+    .form {
+      display: flex;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    .form input {
+      min-width: 0;
+      flex: 1;
+      border: 0;
+      outline: 0;
+      padding: 0 8px 0 14px;
+      color: var(--ink);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 26px 0;
+      color: #77675d;
+      font-size: 13px;
+    }
+
+    .footer-inner { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+
+    @media (max-width: 980px) {
+      .links { display: none; }
+      .hero-grid, .product, .channels, .cta-box { grid-template-columns: 1fr; }
+      .studio { max-width: 680px; transform: none; }
+      .grid-3, .workflow, .impact-strip, .benefit-wall, .comparison { grid-template-columns: repeat(2, 1fr); }
+      .channel-board, .sample-track { grid-template-columns: repeat(3, 1fr); }
+      .price-card.featured, .compare-box.highlight { transform: none; }
+    }
+
+    @media (max-width: 640px) {
+      .container { width: min(100% - 28px, var(--container)); }
+      .nav { min-height: 64px; }
+      .brand { font-size: 16px; }
+      .nav-actions .btn-secondary { display: none; }
+      .btn { min-height: 44px; padding: 0 14px; font-size: 14px; }
+      .hero { padding-top: 42px; }
+      .hero h1 { font-size: clamp(42px, 14vw, 58px); }
+      .proof-row, .grid-3, .workflow, .settings, .outputs, .impact-strip, .benefit-wall, .comparison, .channel-board, .sample-track { grid-template-columns: 1fr; }
+      .compare { min-height: 360px; }
+      .visual-badge, .visual-score { position: static; transform: none; margin: 10px; display: inline-block; }
+      .labels { bottom: 72px; }
+      .upload { grid-template-columns: 1fr; }
+      .row { align-items: flex-start; flex-direction: column; }
+      .cta-box { padding: 28px 20px; border-radius: 22px; }
+      .form { flex-direction: column; border-radius: 20px; }
+      .form input { min-height: 42px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav-wrap">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="OPC Food Photo Studio">
+        <img class="brand-logo" src="../saboriza-opc/assets/opc-logo.svg" alt="OPC" />
+        <span>Food Photo Studio</span>
+      </a>
+      <nav class="links" aria-label="Navegação">
+        <a href="#valor">Problema</a>
+        <a href="#beneficios">Benefícios</a>
+        <a href="#como">Como funciona</a>
+        <a href="#canais">Canais</a>
+        <a href="#precos">Preços</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn btn-secondary" href="#produto">Ver resultado</a>
+        <a class="btn btn-primary" href="#cta">Testar grátis</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <p class="eyebrow">Para restaurantes que vendem no delivery</p>
+          <h1>Não perca pedidos por causa de foto ruim.</h1>
+          <p class="lead">A IA transforma fotos simples dos seus pratos em imagens bonitas, fiéis e prontas para vender no iFood, 99Food, WhatsApp e Instagram.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#cta">Testar com 1 prato grátis</a>
+            <a class="btn btn-secondary" href="#produto">Ver antes/depois</a>
+          </div>
+          <div class="proof-row" aria-label="Benefícios principais">
+            <div class="proof"><b>Sem fotógrafo</b><span>use foto do celular</span></div>
+            <div class="proof"><b>Em minutos</b><span>receba versões prontas</span></div>
+            <div class="proof"><b>Sem enganar</b><span>mantém o prato real</span></div>
+          </div>
+          <div class="impact-strip" aria-label="Resultados esperados">
+            <div class="impact-card"><b>+ clique</b><span>imagem melhor chama atenção no app</span></div>
+            <div class="impact-card"><b>+ desejo</b><span>o prato parece mais apetitoso</span></div>
+            <div class="impact-card"><b>+ padrão</b><span>cardápio com cara profissional</span></div>
+          </div>
+        </div>
+
+        <div class="studio" aria-label="Comparação antes e depois">
+          <div class="studio-bar">
+            <div class="traffic"><i></i><i></i><i></i></div>
+            <span>Antes / Depois</span>
+          </div>
+          <div class="compare" role="slider" aria-label="Arraste para comparar a foto comum com a foto profissional" aria-valuemin="8" aria-valuemax="92" aria-valuenow="48" tabindex="0">
+            <div class="scene before"><div class="plate"></div></div>
+            <div class="scene after"><div class="plate"></div></div>
+            <div class="visual-badge"><b>+ clique</b><span>no cardápio</span></div>
+            <div class="visual-score"><b>3 versões</b><span>em minutos</span></div>
+            <div class="split-line"><span aria-hidden="true">↔</span></div>
+            <div class="labels">
+              <span class="label">Foto do celular</span>
+              <span class="label">Pronta para delivery</span>
+            </div>
+          </div>
+          <div class="settings">
+            <div class="setting"><small>Ganho</small><b>Mais apetite no primeiro clique</b></div>
+            <div class="setting"><small>Regra</small><b>Não mudar porção ou ingredientes</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="container sample-ribbon" aria-label="Exemplos de estilos de foto">
+        <div class="sample-track">
+          <div class="sample-shot"><span>Marmita</span></div>
+          <div class="sample-shot"><span>Burger premium</span></div>
+          <div class="sample-shot"><span>Açaí</span></div>
+          <div class="sample-shot"><span>Sobremesa</span></div>
+          <div class="sample-shot"><span>Sushi</span></div>
+          <div class="sample-shot"><span>Combo família</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="valor">
+      <div class="container">
+        <div class="section-head">
+          <h2>Seu prato pode ser bom. Mas a foto decide o primeiro clique.</h2>
+          <p>O cliente ainda não sentiu cheiro, sabor ou textura. No delivery, ele escolhe com os olhos.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card"><div class="card-icon">!</div><h3>Foto escura derruba desejo</h3><p>Mesmo comida boa parece menos fresca, menor e mais barata quando a imagem está ruim.</p></article>
+          <article class="card"><div class="card-icon">!</div><h3>Cardápio sem padrão passa desconfiança</h3><p>Uma foto clara, outra cortada, outra com fundo bagunçado. O restaurante parece improvisado.</p></article>
+          <article class="card"><div class="card-icon">!</div><h3>Fotógrafo custa tempo e dinheiro</h3><p>Cada prato novo vira agenda, produção, edição e custo. O cardápio muda mais rápido que o estúdio.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="beneficios">
+      <div class="container">
+        <div class="section-head">
+          <h2>Mais do que foto bonita: menos atrito para vender.</h2>
+          <p>O dono não quer aprender design. Ele quer colocar pratos melhores no cardápio e vender com mais confiança.</p>
+        </div>
+        <div class="benefit-wall">
+          <article class="benefit"><strong>01</strong><h3>Lança prato novo mais rápido</h3><p>Foto pronta sem esperar fotógrafo, agenda, estúdio ou edição manual.</p></article>
+          <article class="benefit"><strong>02</strong><h3>Melhora combos e promoções</h3><p>Crie imagem de oferta, marmita, combo família e prato do dia em poucos minutos.</p></article>
+          <article class="benefit"><strong>03</strong><h3>Dá cara de marca grande</h3><p>Mesmo restaurante pequeno fica com cardápio mais organizado e profissional.</p></article>
+          <article class="benefit"><strong>04</strong><h3>Ajuda o cliente a decidir</h3><p>Imagem clara reduz dúvida sobre tamanho, montagem e aparência do prato.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="dark" id="como">
+      <div class="container">
+        <div class="section-head">
+          <h2>Tire a foto. Escolha o estilo. Baixe pronta.</h2>
+          <p>Sem prompt, sem Photoshop e sem produção de estúdio para cada novo item do cardápio.</p>
+        </div>
+        <div class="workflow">
+          <article class="step"><div class="step-num">1</div><h3>Foto real</h3><p>Use uma foto comum do celular. O prato original vira a referência principal.</p></article>
+          <article class="step"><div class="step-num">2</div><h3>IA melhora</h3><p>Luz, fundo, recorte e apetite visual ficam com cara de foto profissional.</p></article>
+          <article class="step"><div class="step-num">3</div><h3>Você aprova</h3><p>Compare antes/depois e baixe só o resultado que representa o prato real.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="produto">
+      <div class="container product">
+        <div>
+          <h2>Bonita, mas sem enganar o cliente.</h2>
+          <p>A IA melhora a foto, mas preserva ingredientes, porção e montagem. Nada de colocar queijo que não existe, aumentar o tamanho do prato ou criar uma promessa falsa.</p>
+          <a class="btn btn-dark" href="#cta">Quero testar no meu prato</a>
+        </div>
+        <div class="app">
+          <div class="app-head"><span>Food Photo Studio</span><span class="ok">Pronto para gerar</span></div>
+          <div class="upload">
+            <div class="thumb" aria-hidden="true"></div>
+            <div>
+              <h3>Parmegiana da casa</h3>
+              <p>Melhorar luz, fundo e composição. Não mudar molho, queijo, porção ou acompanhamentos.</p>
+            </div>
+          </div>
+          <div class="rows">
+            <div class="row"><b>Estilo</b><div class="chips"><span class="chip active">Delivery clean</span><span class="chip">Premium</span><span class="chip">Top view</span></div><span class="ok">OK</span></div>
+            <div class="row"><b>Fidelidade</b><div class="chips"><span class="chip active">Ingredientes</span><span class="chip active">Porção</span><span class="chip active">Formato app</span></div><span class="ok">OK</span></div>
+          </div>
+          <div class="outputs">
+            <div class="output"><span>Opção A</span></div>
+            <div class="output"><span>Opção B</span></div>
+            <div class="output"><span>Opção C</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Troque produção cara por teste rápido.</h2>
+          <p>Quando o cardápio muda toda semana, velocidade importa tanto quanto qualidade.</p>
+        </div>
+        <div class="comparison">
+          <div class="compare-box">
+            <h3>Fotografia tradicional</h3>
+            <ul class="compare-list">
+              <li><span>Agenda e deslocamento</span><b>lento</b></li>
+              <li><span>Custo por sessão</span><b>alto</b></li>
+              <li><span>Repetir para prato novo</span><b>difícil</b></li>
+              <li><span>Editar formatos diferentes</span><b>manual</b></li>
+            </ul>
+          </div>
+          <div class="compare-box highlight">
+            <h3>OPC Food Photo Studio</h3>
+            <ul class="compare-list">
+              <li><span>Use foto do celular</span><b>rápido</b></li>
+              <li><span>Teste 1 prato grátis</span><b>baixo risco</b></li>
+              <li><span>Gere variações por estilo</span><b>flexível</b></li>
+              <li><span>Baixe para vários canais</span><b>pronto</b></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="canais">
+      <div class="container channels">
+        <div class="section-head" style="text-align:left;margin:0;">
+          <h2>Uma foto melhor, vários canais de venda.</h2>
+          <p>O mesmo prato pode virar imagem de cardápio, campanha, story e WhatsApp sem o restaurante refazer produção toda semana.</p>
+        </div>
+        <div class="channel-board" aria-label="Canais de venda">
+          <div class="channel-card"><b>iFood</b><span>menu pronto</span></div>
+          <div class="channel-card"><b>99Food</b><span>miniatura clara</span></div>
+          <div class="channel-card"><b>WhatsApp</b><span>combo bonito</span></div>
+          <div class="channel-card"><b>Instagram</b><span>post e story</span></div>
+          <div class="channel-card"><b>Google</b><span>perfil local</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>Funciona para o prato que mais precisa vender.</h2>
+          <p>Comece pelo item que aparece mais no app: campeão de margem, prato novo, combo ou foto que hoje está prejudicando o cardápio.</p>
+        </div>
+        <div class="dish-strip" aria-label="Tipos de pratos">
+          <span class="dish">Marmita</span>
+          <span class="dish">Burger</span>
+          <span class="dish">Pizza</span>
+          <span class="dish">Parmegiana</span>
+          <span class="dish">Açaí</span>
+          <span class="dish">Sushi</span>
+          <span class="dish">Sobremesa</span>
+          <span class="dish">Combo família</span>
+          <span class="dish">Prato do dia</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="precos">
+      <div class="container">
+        <div class="section-head">
+          <h2>Teste primeiro. Pague só quando fizer sentido.</h2>
+          <p>O restaurante vê o antes/depois no próprio prato antes de comprar créditos para o cardápio.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card price-card"><div class="price-name">Primeiro prato</div><div class="price">Grátis</div><p>Para sentir o impacto sem compromisso.</p><ul><li>1 prato real</li><li>3 variações</li><li>Antes/depois para comparar</li></ul><a class="btn btn-secondary" href="#cta">Testar agora</a></article>
+          <article class="card price-card featured"><div class="price-name">Cardápio que vende</div><div class="price">Créditos</div><p>Para deixar os principais pratos com cara profissional.</p><ul><li>Fotos sem marca d'água</li><li>Formatos para delivery</li><li>Estilos por categoria</li><li>Histórico aprovado</li></ul><a class="btn btn-primary" href="#cta">Entrar na lista</a></article>
+          <article class="card price-card"><div class="price-name">Redes e agências</div><div class="price">Volume</div><p>Para quem cuida de muitas lojas, marcas ou clientes.</p><ul><li>Processamento em lote</li><li>Aprovação por equipe</li><li>Padrão de marca</li><li>API e integrações</li></ul><a class="btn btn-secondary" href="#cta">Falar com time</a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="final" id="cta">
+      <div class="container">
+        <div class="cta-box">
+          <div>
+            <h2>Envie uma foto do seu prato hoje.</h2>
+            <p>Receba a primeira versão grátis e veja se a foto faz o prato parecer mais vendável.</p>
+          </div>
+          <form class="form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Recebido!';">
+            <input type="text" placeholder="E-mail ou WhatsApp" aria-label="E-mail ou WhatsApp" required />
+            <button class="btn btn-primary" type="submit">Receber foto grátis</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>© 2026 OPC Food Photo Studio</span>
+      <span>Não perca pedidos por causa de foto ruim.</span>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.compare').forEach((card) => {
+      const setSplit = (clientX) => {
+        const rect = card.getBoundingClientRect();
+        const raw = ((clientX - rect.left) / rect.width) * 100;
+        const value = Math.max(8, Math.min(92, raw));
+        card.style.setProperty('--split', `${value}%`);
+        card.setAttribute('aria-valuenow', Math.round(value));
+      };
+
+      const stop = (event) => {
+        card.classList.remove('dragging');
+        if (event.pointerId !== undefined) {
+          try { card.releasePointerCapture?.(event.pointerId); } catch (_) {}
+        }
+      };
+
+      card.addEventListener('pointerdown', (event) => {
+        card.classList.add('dragging');
+        card.setPointerCapture?.(event.pointerId);
+        setSplit(event.clientX);
+      });
+      card.addEventListener('pointermove', (event) => {
+        if (card.classList.contains('dragging')) setSplit(event.clientX);
+      });
+      card.addEventListener('pointerup', stop);
+      card.addEventListener('pointercancel', stop);
+      card.addEventListener('lostpointercapture', stop);
+      card.addEventListener('keydown', (event) => {
+        const current = Number.parseInt(card.getAttribute('aria-valuenow') || '48', 10);
+        let next = current;
+        if (event.key === 'ArrowLeft') next -= 5;
+        if (event.key === 'ArrowRight') next += 5;
+        if (event.key === 'Home') next = 8;
+        if (event.key === 'End') next = 92;
+        if (next !== current) {
+          event.preventDefault();
+          next = Math.max(8, Math.min(92, next));
+          card.style.setProperty('--split', `${next}%`);
+          card.setAttribute('aria-valuenow', next);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
