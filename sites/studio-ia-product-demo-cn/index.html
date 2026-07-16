@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>智能餐图工坊产品原型</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #fffaf4;
+      --panel-2: #fff;
+      --text: #201d1a;
+      --muted: #756d64;
+      --line: #e4d9cb;
+      --line-strong: #d0c1b1;
+      --brand: #b42318;
+      --brand-2: #7f1d1d;
+      --brand-soft: #fbe4df;
+      --ink: #14110f;
+      --good: #11845b;
+      --good-soft: #dcf4e9;
+      --warn: #a15c00;
+      --warn-soft: #fff0d3;
+      --bad: #b42318;
+      --bad-soft: #ffe1dd;
+      --shadow: 0 18px 50px rgba(45, 31, 19, .12);
+      --radius: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(180,35,24,.08), transparent 220px),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .56; }
+    .app {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px 14px;
+      border-right: 1px solid var(--line);
+      background: rgba(255, 250, 244, .82);
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+    }
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: radial-gradient(circle at 32% 30%, #fff 0 10%, transparent 11%), linear-gradient(135deg, var(--brand), var(--brand-2));
+      box-shadow: 0 10px 25px rgba(180, 35, 24, .28);
+      flex: 0 0 auto;
+    }
+    .brand h1 {
+      font-size: 16px;
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: 0;
+      font-weight: 700;
+    }
+    .brand span { color: var(--muted); font-size: 12px; }
+    .account-card {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .credit-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .credit-count {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--brand-2);
+    }
+    .nav {
+      display: grid;
+      gap: 4px;
+      align-content: start;
+    }
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: left;
+    }
+    .nav button:hover { background: rgba(180, 35, 24, .07); color: var(--text); }
+    .nav button.active {
+      background: var(--brand-soft);
+      color: var(--brand-2);
+      font-weight: 700;
+    }
+    .side-help {
+      border-radius: var(--radius);
+      background: #221815;
+      color: #fff7ed;
+      padding: 13px;
+    }
+    .side-help p { margin: 4px 0 12px; color: rgba(255,247,237,.72); font-size: 13px; }
+    .main-wrap {
+      min-width: 0;
+      padding: 18px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .topbar h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    .topbar p { margin: 4px 0 0; color: var(--muted); }
+    .top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .btn {
+      border: 1px solid var(--line-strong);
+      background: var(--panel-2);
+      color: var(--text);
+      min-height: 40px;
+      padding: 9px 13px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-2); }
+    .btn.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+      box-shadow: 0 10px 25px rgba(180,35,24,.2);
+    }
+    .btn.primary:hover:not(:disabled) { background: var(--brand-2); color: white; }
+    .btn.ghost {
+      border-color: transparent;
+      background: transparent;
+    }
+    .btn.danger {
+      border-color: var(--bad);
+      background: var(--bad-soft);
+      color: var(--bad);
+    }
+    .layout {
+      display: grid;
+      gap: 14px;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.76);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+      padding: 16px;
+    }
+    .card.tight { padding: 12px; }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .card p { color: var(--muted); margin: 4px 0 0; }
+    .stat {
+      display: grid;
+      gap: 8px;
+    }
+    .stat-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--brand-soft);
+      color: var(--brand-2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge.good { background: var(--good-soft); color: var(--good); }
+    .badge.warn { background: var(--warn-soft); color: var(--warn); }
+    .badge.bad { background: var(--bad-soft); color: var(--bad); }
+    .upload-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .dropzone {
+      border: 2px dashed var(--line-strong);
+      background: linear-gradient(135deg, rgba(255,255,255,.65), rgba(251,228,223,.44));
+      border-radius: var(--radius);
+      min-height: 285px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .dropzone.dragover {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+    .file-input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .preview-frame {
+      min-height: 285px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 50% 42%, rgba(180,35,24,.14) 0 14%, transparent 15%),
+        linear-gradient(135deg, #e7d8c8, #fff7ed);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .preview-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-height: 430px;
+      display: block;
+      background: rgba(255,255,255,.45);
+    }
+    .batch-list {
+      display: grid;
+      gap: 8px;
+    }
+    .batch-item {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.68);
+      border-radius: 10px;
+      padding: 8px;
+    }
+    .batch-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(180,35,24,.14) 0 16%, transparent 17%),
+        linear-gradient(135deg, #eadfd3, #fff7ed);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+    }
+    .batch-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .batch-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+    .preview-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      border: 1px solid var(--line);
+      background: var(--soft-panel, #f7eee6);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .segmented button {
+      border: 0;
+      background: transparent;
+      border-radius: 9px;
+      padding: 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .segmented button.active {
+      background: var(--panel-2);
+      color: var(--text);
+      box-shadow: 0 8px 20px rgba(40,25,10,.08);
+    }
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255,255,255,.72);
+      display: grid;
+      gap: 4px;
+      min-height: 78px;
+      text-align: left;
+    }
+    .option:hover { border-color: var(--brand); }
+    .option.active {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--brand-2);
+    }
+    .field { display: grid; gap: 6px; }
+    .field label { font-weight: 700; }
+    textarea, input, select {
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: white;
+      color: var(--text);
+      padding: 10px 11px;
+      min-height: 42px;
+      width: 100%;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    .validation {
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.6);
+    }
+    .validation.bad { background: var(--bad-soft); border-color: rgba(180,35,24,.35); color: var(--bad); }
+    .validation.good { background: var(--good-soft); border-color: rgba(17,132,91,.24); color: var(--good); }
+    .validation.warn { background: var(--warn-soft); border-color: rgba(161,92,0,.24); color: var(--warn); }
+    .progress-card {
+      display: grid;
+      gap: 12px;
+    }
+    .progress-track {
+      height: 10px;
+      background: #eadfd3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand), #ef6f61);
+      border-radius: inherit;
+      transition: width .25s ease;
+    }
+    .steps {
+      display: grid;
+      gap: 8px;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr);
+      gap: 8px;
+      color: var(--muted);
+      align-items: start;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      background: #eadfd3;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+    .step.done { color: var(--good); }
+    .step.active { color: var(--brand-2); font-weight: 700; }
+    .step.done .step-num { background: var(--good-soft); color: var(--good); }
+    .step.active .step-num { background: var(--brand-soft); color: var(--brand-2); }
+    .compare {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      min-height: 360px;
+      background: var(--panel-2);
+    }
+    .compare-pane {
+      display: grid;
+      place-items: end center;
+      padding: 12px;
+      background:
+        radial-gradient(circle at 52% 42%, rgba(70,50,30,.11) 0 14%, transparent 15%),
+        linear-gradient(135deg, #eadfd3, #fff7ed);
+      position: relative;
+    }
+    .compare-pane.after {
+      border-left: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 50% 39%, rgba(180,35,24,.23) 0 18%, transparent 19%),
+        linear-gradient(135deg, #fff7ed, #fbe4df);
+    }
+    .compare-pane img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 14px;
+    }
+    .compare .chip {
+      z-index: 1;
+      background: rgba(255,255,255,.9);
+      border: 1px solid var(--line);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .result-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(251,228,223,.72), rgba(255,255,255,.78));
+      padding: 14px;
+    }
+    .result-hero strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .result-hero p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .photo-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.78);
+      overflow: hidden;
+      display: grid;
+    }
+    .photo-img {
+      height: 190px;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(180,35,24,.2) 0 15%, transparent 16%),
+        linear-gradient(135deg, #fff7ed, #fbe4df);
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .photo-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+    .photo-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .photo-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .photo-actions .btn {
+      min-width: 0;
+      padding-inline: 8px;
+    }
+    .photo-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .toast-area {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      gap: 8px;
+      z-index: 20;
+      max-width: min(360px, calc(100vw - 32px));
+    }
+    .toast {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.94);
+      box-shadow: var(--shadow);
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(20,17,15,.52);
+      display: none;
+      place-items: center;
+      padding: 18px;
+      z-index: 10;
+    }
+    .modal-backdrop.open { display: grid; }
+    .modal {
+      width: min(920px, 100%);
+      max-height: min(880px, 92vh);
+      overflow: auto;
+      background: var(--panel);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+    .empty {
+      min-height: 300px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.5);
+      padding: 20px;
+    }
+    .mobile-menu { display: none; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        grid-template-rows: auto;
+      }
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .side-help { display: none; }
+      .upload-shell, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .main-wrap { padding: 12px; }
+      .topbar, .head-row { align-items: stretch; }
+      .top-actions { justify-content: flex-start; }
+      .grid-2, .compare, .result-hero { grid-template-columns: 1fr; }
+      .grid-2, .compare { display: grid; }
+      .photo-actions { grid-template-columns: 1fr; }
+      .nav { grid-template-columns: 1fr 1fr; }
+      .compare-pane.after { border-left: 0; border-top: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>智能餐图工坊</h1>
+          <span>照片生成工作台原型</span>
+        </div>
+      </div>
+      <div class="account-card">
+        <div class="credit-line">
+          <div>
+            <div class="small">可用积分</div>
+            <div class="credit-count" data-credit-count>18</div>
+          </div>
+          <span class="badge good">已登录</span>
+        </div>
+        <button class="btn primary" data-nav="upload">生成新照片</button>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button data-nav="dashboard" class="active">首页概览</button>
+        <button data-nav="upload">生成照片</button>
+        <button data-nav="gallery">照片库</button>
+        <button data-nav="plan">购买积分</button>
+        <button data-nav="history">操作历史</button>
+        <button data-nav="settings">账号设置</button>
+      </nav>
+      <div class="side-help">
+        <strong>推荐流程</strong>
+        <p>先用 1:1 菜单图测试一个菜品，满意后复用配置批量生成。</p>
+        <button class="btn" data-nav="upload">开始配置</button>
+      </div>
+    </aside>
+
+    <main class="main-wrap">
+      <div class="topbar">
+        <div>
+          <h2 data-page-title>首页概览</h2>
+          <p data-page-subtitle>查看积分、最近作品和生成状态。</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn" data-action="simulate-low-credit">模拟低积分</button>
+          <button class="btn" data-action="reset-demo">重置演示</button>
+        </div>
+      </div>
+      <section id="view"></section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="result-modal" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="modal">
+      <div class="topbar" style="margin:0">
+        <div>
+          <h2 id="result-title">生成结果</h2>
+          <p>对比原图和优化后的 mock 结果。</p>
+        </div>
+        <button class="btn ghost" data-action="close-modal">关闭</button>
+      </div>
+      <div id="result-content"></div>
+    </div>
+  </div>
+
+  <div class="toast-area" id="toast-area" aria-live="polite"></div>
+
+  <script>
+    const initialState = () => ({
+      page: 'dashboard',
+      credits: 18,
+      plan: '餐饮专业版',
+      user: 'demo@studioia.local',
+      uploadedFile: null,
+      uploadedPreview: '',
+      batchFiles: [],
+      uploadError: '',
+      mode: 'enhance',
+      scene: '餐厅桌面',
+      lighting: '暖色柔光',
+      ratio: '1:1',
+      removeItems: '去掉塑料袋、纸巾和杂乱背景',
+      prompt: '深色木桌，餐厅背景轻微虚化，暖色灯光，主体保持真实，看起来适合外卖菜单。',
+      customScene: '',
+      isGenerating: false,
+      progress: 0,
+      activeStep: 0,
+      generationMessage: '等待开始',
+      jobs: [],
+      gallery: [
+        {
+          id: 1001,
+          name: '招牌汉堡',
+          scene: '汉堡店',
+          lighting: '暖色柔光',
+          ratio: '1:1',
+          mode: '单张优化',
+          downloaded: true,
+          expired: false,
+          createdAt: '今天 10:24',
+          prompt: '木桌、暖光、背景虚化',
+          preview: ''
+        },
+        {
+          id: 1002,
+          name: '意面套餐',
+          scene: '餐厅桌面',
+          lighting: '自然光',
+          ratio: '4:5',
+          mode: '统一风格',
+          downloaded: false,
+          expired: false,
+          createdAt: '昨天 18:02',
+          prompt: '白色餐布、高级餐厅',
+          preview: ''
+        },
+        {
+          id: 1003,
+          name: '过期样例',
+          scene: '白底目录',
+          lighting: '明亮影棚',
+          ratio: '1:1',
+          mode: '单张优化',
+          downloaded: false,
+          expired: true,
+          createdAt: '3 天前',
+          prompt: '商品目录白底',
+          preview: ''
+        }
+      ],
+      history: [
+        { type: '生成', detail: '招牌汉堡生成成功，消耗 1 积分', time: '今天 10:24' },
+        { type: '下载', detail: '招牌汉堡已下载', time: '今天 10:26' },
+        { type: '购买', detail: '购买餐饮专业版 30 积分', time: '昨天 09:12' }
+      ],
+      selectedPhoto: null
+    });
+
+    let state = initialState();
+    let generationTimer = null;
+
+    const view = document.getElementById('view');
+    const title = document.querySelector('[data-page-title]');
+    const subtitle = document.querySelector('[data-page-subtitle]');
+    const modal = document.getElementById('result-modal');
+    const resultContent = document.getElementById('result-content');
+
+    const pageMeta = {
+      dashboard: ['首页概览', '查看积分、最近作品和生成状态。'],
+      upload: ['生成照片', '上传照片，配置场景、灯光、比例和提示词。'],
+      gallery: ['照片库', '管理生成结果、对比、下载和复用参数。'],
+      plan: ['购买积分', '所有套餐和支付信息均为 mock 数据。'],
+      history: ['操作历史', '查看生成、下载、购买和失败记录。'],
+      settings: ['账号设置', '管理账号、默认生成偏好和边界设置。']
+    };
+
+    function setPage(page) {
+      state.page = page;
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.nav === page);
+      });
+      render();
+    }
+
+    function render() {
+      const meta = pageMeta[state.page] || pageMeta.dashboard;
+      title.textContent = meta[0];
+      subtitle.textContent = meta[1];
+      document.querySelector('[data-credit-count]').textContent = state.credits;
+      if (state.page === 'dashboard') renderDashboard();
+      if (state.page === 'upload') renderUpload();
+      if (state.page === 'gallery') renderGallery();
+      if (state.page === 'plan') renderPlan();
+      if (state.page === 'history') renderHistory();
+      if (state.page === 'settings') renderSettings();
+    }
+
+    function renderDashboard() {
+      const activeJob = state.jobs.find(job => job.status === '生成中');
+      view.innerHTML = `
+        <div class="layout">
+          ${state.credits <= 2 ? `<div class="validation warn"><strong>积分偏低</strong><span>当前仅剩 ${state.credits} 个积分。可以继续生成，但建议尽快补充，避免批量处理被中断。</span></div>` : ''}
+          <div class="grid-3">
+            <div class="card stat"><span class="small">可用积分</span><span class="stat-value">${state.credits}</span><p>每次生成默认消耗 1 个积分。</p></div>
+            <div class="card stat"><span class="small">已生成照片</span><span class="stat-value">${state.gallery.length}</span><p>包含可下载、已下载和过期样例。</p></div>
+            <div class="card stat"><span class="small">已下载</span><span class="stat-value">${state.gallery.filter(p => p.downloaded).length}</span><p>下载状态会写入照片卡片。</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="credit-line">
+                <div>
+                  <h3>快速开始</h3>
+                  <p>按照逆向出的真实逻辑：上传原图、选择生成模式、配置场景和比例、点击处理。</p>
+                </div>
+                <button class="btn primary" data-nav="upload">生成新照片</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>当前生成状态</h3>
+              ${activeJob ? `<p>${activeJob.name} 正在生成，进度 ${activeJob.progress}%。</p>` : `<p>当前没有排队任务。生成会以进度条形式模拟处理阶段。</p>`}
+            </div>
+          </div>
+          <div class="card">
+            <div class="credit-line">
+              <div>
+                <h3>最近照片</h3>
+                <p>真实产品中这里会展示最近的优化图，便于继续下载或复用参数。</p>
+              </div>
+              <button class="btn" data-nav="gallery">查看全部</button>
+            </div>
+            <div class="gallery-grid" style="margin-top:12px">
+              ${state.gallery.slice(0, 3).map(photoCard).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      bindCommon();
+      bindPhotoActions();
+    }
+
+    function renderUpload() {
+      const isBatch = state.mode === 'standardize';
+      const pendingCount = isBatch ? state.batchFiles.length : Number(Boolean(state.uploadedFile || state.uploadedPreview));
+      const canGenerate = pendingCount > 0 && !state.uploadError && state.credits >= pendingCount && !state.isGenerating;
+      view.innerHTML = `
+        <div class="upload-shell">
+          <div class="layout">
+            <div class="card">
+              <div class="credit-line">
+                <div>
+                  <h3>1. ${isBatch ? '批量上传菜单照片' : '上传原始照片'}</h3>
+                  <p>${isBatch ? '统一风格模式支持一次选择多张菜品图，统一套用同一套场景、灯光和比例。' : '支持 JPG、PNG、WEBP。最大 30MB。这里仅在本地预览，不会上传。'}</p>
+                </div>
+                ${pendingCount ? `<span class="badge good">已选择 ${pendingCount} 张</span>` : `<span class="badge warn">等待上传</span>`}
+              </div>
+              <div class="dropzone" id="dropzone">
+                <input class="file-input" type="file" id="file-input" accept="image/jpeg,image/png,image/webp" ${isBatch ? 'multiple' : ''}>
+                <div>
+                  <strong>${pendingCount ? isBatch ? '继续添加或拖入更多照片' : '点击或拖入可更换照片' : isBatch ? '拖入多张菜单照片或点击选择' : '拖入照片或点击选择文件'}</strong>
+                  <p>${isBatch ? '建议每张菜品图主体清晰。批量生成会按张数扣除积分。' : '建议主体清晰、无遮挡、不要过度压缩。'}</p>
+                  <button class="btn primary" type="button">${isBatch ? '选择多张照片' : '选择照片'}</button>
+                </div>
+              </div>
+              ${state.uploadError ? `<div class="validation bad"><strong>无法使用该图片</strong><span>${state.uploadError}</span></div>` : ''}
+              ${isBatch && state.batchFiles.length ? `
+                <div class="batch-list" style="margin-top:12px">
+                  ${state.batchFiles.map(item => `
+                    <div class="batch-item">
+                      <div class="batch-thumb">${item.preview ? `<img src="${item.preview}" alt="${escapeHtml(item.name)}">` : ''}</div>
+                      <div>
+                        <div class="batch-name">${escapeHtml(item.name)}</div>
+                        <div class="small">${formatBytes(item.size)} · 等待处理</div>
+                      </div>
+                      <button class="btn ghost" data-remove-batch="${item.id}" type="button">移除</button>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="card">
+              <h3>2. 选择生成模式</h3>
+              <div class="segmented">
+                <button class="${state.mode === 'enhance' ? 'active' : ''}" data-mode="enhance">单张优化<br><span class="small">让一张图更专业</span></button>
+                <button class="${state.mode === 'standardize' ? 'active' : ''}" data-mode="standardize">统一风格<br><span class="small">适合批量菜单</span></button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>3. 场景、灯光和比例</h3>
+              <p>这些配置对应逆向出的真实页面逻辑：场景、照明、画幅、移除项和自定义提示。</p>
+              <div class="field" style="margin-top:12px">
+                <label>场景</label>
+                <div class="grid-4">${['餐厅桌面','咖啡馆','汉堡店','披萨店','白底目录','木质桌面','大理石台面','露台户外'].map(optionButton('scene')).join('')}</div>
+              </div>
+              <div class="field">
+                <label>灯光</label>
+                <div class="grid-4">${['暖色柔光','自然光','明亮影棚','戏剧化暗调'].map(optionButton('lighting')).join('')}</div>
+              </div>
+              <div class="field">
+                <label>输出比例</label>
+                <div class="grid-4">${['1:1','4:5','9:16','16:9'].map(optionButton('ratio')).join('')}</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>4. 可选指令</h3>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="remove-items">想移除的内容</label>
+                  <textarea id="remove-items">${escapeHtml(state.removeItems)}</textarea>
+                </div>
+                <div class="field">
+                  <label for="prompt">自定义生成描述</label>
+                  <textarea id="prompt">${escapeHtml(state.prompt)}</textarea>
+                </div>
+              </div>
+              <div class="field">
+                <label for="custom-scene">自定义场景补充</label>
+                <input id="custom-scene" value="${escapeHtml(state.customScene)}" placeholder="例如：深色木桌、餐厅窗边、背景自然虚化">
+              </div>
+            </div>
+          </div>
+
+          <aside class="layout">
+            <div class="card">
+              <h3>预览</h3>
+              <div class="preview-frame">
+                ${isBatch ? state.batchFiles[0]?.preview ? `<img src="${state.batchFiles[0].preview}" alt="批量首图预览">` : `<div class="preview-empty"><strong>还没有选择图片</strong><p>选择多张文件后，这里会显示批量队列首图。</p></div>` : state.uploadedPreview ? `<img src="${state.uploadedPreview}" alt="本地预览图">` : `<div class="preview-empty"><strong>还没有选择图片</strong><p>选择文件后这里会显示本地预览。</p></div>`}
+              </div>
+              <div class="grid-2" style="margin-top:12px">
+                <div><span class="small">模式</span><br><strong>${state.mode === 'enhance' ? '单张优化' : '统一风格'}</strong></div>
+                <div><span class="small">场景</span><br><strong>${state.scene}</strong></div>
+                <div><span class="small">灯光</span><br><strong>${state.lighting}</strong></div>
+                <div><span class="small">比例</span><br><strong>${state.ratio}</strong></div>
+              </div>
+            </div>
+
+            <div class="card progress-card">
+              <div class="credit-line">
+                <div>
+                  <h3>生成状态</h3>
+                  <p>${state.generationMessage}</p>
+                </div>
+                <span class="badge ${state.isGenerating ? 'warn' : state.credits > 0 ? 'good' : 'bad'}">${state.isGenerating ? '生成中' : state.credits > 0 ? '可生成' : '无积分'}</span>
+              </div>
+              <div class="progress-track"><div class="progress-bar" style="width:${state.progress}%"></div></div>
+              <div class="steps">
+                ${(isBatch ? ['校验批量图片','锁定统一风格','逐张分析主体','套用统一场景','批量生成结果','保存到照片库'] : ['校验图片','优化上传图','AI 分析主体','应用场景灯光','生成最终图','保存到照片库']).map((label, index) => stepRow(label, index)).join('')}
+              </div>
+              ${state.credits <= 0 ? `<div class="validation bad"><strong>积分不足</strong><span>请先购买积分，再开始生成。</span></div>` : ''}
+              ${pendingCount > state.credits ? `<div class="validation bad"><strong>批量数量超过积分</strong><span>当前选择 ${pendingCount} 张，但只有 ${state.credits} 个积分。请减少照片或购买积分。</span></div>` : ''}
+              ${isBatch && pendingCount > 0 ? `<div class="validation good"><strong>批量菜单模式</strong><span>将用同一套参数处理 ${pendingCount} 张照片，预计消耗 ${pendingCount} 个积分。</span></div>` : ''}
+              <button class="btn primary" data-action="generate" ${canGenerate ? '' : 'disabled'}>开始处理照片</button>
+              <button class="btn" data-action="use-preset">套用上一张配置</button>
+            </div>
+          </aside>
+        </div>
+      `;
+      bindUpload();
+      bindCommon();
+    }
+
+    function renderGallery() {
+      const usable = state.gallery.filter(photo => !photo.expired);
+      view.innerHTML = `
+        <div class="layout">
+          <div class="card">
+            <div class="credit-line">
+              <div>
+                <h3>照片库</h3>
+                <p>支持查看、对比、下载、删除和复用配置。过期图片会阻止下载。</p>
+              </div>
+              <div class="top-actions">
+                <button class="btn" data-action="download-all" ${usable.length ? '' : 'disabled'}>下载全部可用图片</button>
+                <button class="btn primary" data-nav="upload">继续生成</button>
+              </div>
+            </div>
+          </div>
+          ${state.gallery.length ? `<div class="gallery-grid">${state.gallery.map(photoCard).join('')}</div>` : emptyState('还没有生成照片', '先去生成页上传并处理第一张图片。', '去生成', 'upload')}
+        </div>
+      `;
+      bindCommon();
+      bindPhotoActions();
+    }
+
+    function renderPlan() {
+      view.innerHTML = `
+        <div class="layout">
+          <div class="validation warn"><strong>Mock 支付</strong><span>这里不接入真实支付，只模拟购买后积分增加的状态。</span></div>
+          <div class="grid-3">
+            ${planCard('入门包', 15, '39.90 雷亚尔', '适合试跑一组菜单图')}
+            ${planCard('专业包', 30, '69.90 雷亚尔', '适合小店更新菜单')}
+            ${planCard('商家包', 50, '99.90 雷亚尔', '适合批量统一风格')}
+          </div>
+        </div>
+      `;
+      document.querySelectorAll('[data-buy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const amount = Number(btn.dataset.buy);
+          state.credits += amount;
+          state.history.unshift({ type: '购买', detail: `模拟购买 ${amount} 积分`, time: '刚刚' });
+          toast('购买成功', `已增加 ${amount} 积分。`);
+          render();
+        });
+      });
+    }
+
+    function renderHistory() {
+      view.innerHTML = `
+        <div class="card">
+          <h3>操作历史</h3>
+          <p>记录 mock 的购买、生成、下载、失败和删除事件。</p>
+        </div>
+        <div class="layout">
+          ${state.history.length ? state.history.map(item => `
+            <div class="card tight">
+              <div class="credit-line">
+                <div><strong>${item.type}</strong><p>${item.detail}</p></div>
+                <span class="small">${item.time}</span>
+              </div>
+            </div>
+          `).join('') : emptyState('暂无历史', '完成一次生成后这里会出现记录。', '去生成', 'upload')}
+        </div>
+      `;
+      bindCommon();
+    }
+
+    function renderSettings() {
+      view.innerHTML = `
+        <div class="grid-2">
+          <div class="card">
+            <h3>账号信息</h3>
+            <p>邮箱：${state.user}</p>
+            <p>当前方案：${state.plan}</p>
+            <p>可用积分：${state.credits}</p>
+          </div>
+          <div class="card">
+            <h3>默认生成偏好</h3>
+            <div class="field">
+              <label>默认比例</label>
+              <select id="default-ratio">
+                ${['1:1','4:5','9:16','16:9'].map(r => `<option ${state.ratio === r ? 'selected' : ''}>${r}</option>`).join('')}
+              </select>
+            </div>
+            <button class="btn primary" data-action="save-settings">保存偏好</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>边界情况说明</h3>
+          <div class="steps">
+            <div class="step"><span class="step-num">1</span><span>无积分时生成按钮禁用，并引导购买。</span></div>
+            <div class="step"><span class="step-num">2</span><span>非图片、超过 30MB、无法读取的文件会被拦截。</span></div>
+            <div class="step"><span class="step-num">3</span><span>过期照片不能下载，只能删除或重新生成。</span></div>
+            <div class="step"><span class="step-num">4</span><span>生成中会锁定按钮，防止重复提交。</span></div>
+          </div>
+        </div>
+      `;
+      document.querySelector('[data-action="save-settings"]').addEventListener('click', () => {
+        state.ratio = document.getElementById('default-ratio').value;
+        toast('已保存', '默认比例已更新。');
+      });
+    }
+
+    function optionButton(key) {
+      return value => {
+        const active = state[key] === value ? 'active' : '';
+        const hints = {
+          '餐厅桌面': '适合正餐',
+          '咖啡馆': '自然氛围',
+          '汉堡店': '快餐冲击',
+          '披萨店': '暖色桌面',
+          '白底目录': '电商/菜单',
+          '木质桌面': '质感自然',
+          '大理石台面': '高级干净',
+          '露台户外': '自然光',
+          '暖色柔光': '更有食欲',
+          '自然光': '真实日常',
+          '明亮影棚': '干净商业',
+          '戏剧化暗调': '高级质感',
+          '1:1': '菜单目录',
+          '4:5': '信息流',
+          '9:16': '短视频/故事',
+          '16:9': '横幅'
+        };
+        return `<button class="option ${active}" data-option="${key}" data-value="${value}"><strong>${value}</strong><span class="small">${hints[value] || ''}</span></button>`;
+      };
+    }
+
+    function stepRow(label, index) {
+      const cls = state.activeStep > index ? 'done' : state.activeStep === index && state.isGenerating ? 'active' : '';
+      return `<div class="step ${cls}"><span class="step-num">${index + 1}</span><span>${label}</span></div>`;
+    }
+
+    function photoCard(photo) {
+      const image = photo.preview ? `<img src="${photo.preview}" alt="${escapeHtml(photo.name)}">` : '';
+      return `
+        <article class="photo-card">
+          <div class="photo-img">${image}<span class="badge ${photo.expired ? 'bad' : photo.downloaded ? 'good' : ''}" style="position:absolute;top:10px;left:10px">${photo.expired ? '已过期' : photo.downloaded ? '已下载' : '可下载'}</span></div>
+          <div class="photo-body">
+            <div class="photo-meta">
+              <strong>${escapeHtml(photo.name)}</strong>
+              <span class="small">${photo.createdAt}</span>
+            </div>
+            <div class="small">${photo.mode} · ${photo.scene} · ${photo.ratio}</div>
+            <div class="top-actions" style="justify-content:flex-start">
+              <button class="btn" data-photo-view="${photo.id}">对比</button>
+              <button class="btn" data-photo-download="${photo.id}" ${photo.expired ? 'disabled' : ''}>下载</button>
+              <button class="btn" data-photo-reuse="${photo.id}">复用配置</button>
+              <button class="btn danger" data-photo-delete="${photo.id}">删除</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function planCard(name, credits, price, note) {
+      return `
+        <div class="card">
+          <span class="badge">${name}</span>
+          <div class="stat-value">${credits}</div>
+          <strong>张照片积分</strong>
+          <p>${note}</p>
+          <p class="small">模拟价格：${price}</p>
+          <button class="btn primary" data-buy="${credits}">模拟购买</button>
+        </div>
+      `;
+    }
+
+    function emptyState(title, desc, action, page) {
+      return `
+        <div class="empty">
+          <div>
+            <h3>${title}</h3>
+            <p>${desc}</p>
+            <button class="btn primary" data-nav="${page}" style="margin-top:12px">${action}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindUpload() {
+      const fileInput = document.getElementById('file-input');
+      const dropzone = document.getElementById('dropzone');
+      if (fileInput) fileInput.addEventListener('change', event => handleFiles(Array.from(event.target.files || [])));
+      if (dropzone) {
+        ['dragenter', 'dragover'].forEach(type => dropzone.addEventListener(type, event => {
+          event.preventDefault();
+          dropzone.classList.add('dragover');
+        }));
+        ['dragleave', 'drop'].forEach(type => dropzone.addEventListener(type, event => {
+          event.preventDefault();
+          dropzone.classList.remove('dragover');
+        }));
+        dropzone.addEventListener('drop', event => handleFiles(Array.from(event.dataTransfer.files || [])));
+      }
+      document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.mode = btn.dataset.mode;
+          state.uploadError = '';
+          renderUpload();
+        });
+      });
+      document.querySelectorAll('[data-remove-batch]').forEach(btn => {
+        btn.addEventListener('click', event => {
+          event.preventDefault();
+          event.stopPropagation();
+          state.batchFiles = state.batchFiles.filter(item => String(item.id) !== String(btn.dataset.removeBatch));
+          renderUpload();
+        });
+      });
+      document.querySelectorAll('[data-option]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state[btn.dataset.option] = btn.dataset.value;
+          renderUpload();
+        });
+      });
+      const remove = document.getElementById('remove-items');
+      const prompt = document.getElementById('prompt');
+      const custom = document.getElementById('custom-scene');
+      if (remove) remove.addEventListener('input', () => state.removeItems = remove.value);
+      if (prompt) prompt.addEventListener('input', () => state.prompt = prompt.value);
+      if (custom) custom.addEventListener('input', () => state.customScene = custom.value);
+      const generate = document.querySelector('[data-action="generate"]');
+      if (generate) generate.addEventListener('click', startGeneration);
+      const preset = document.querySelector('[data-action="use-preset"]');
+      if (preset) preset.addEventListener('click', useLastPreset);
+    }
+
+    function handleFiles(files) {
+      state.uploadError = '';
+      if (!files.length) return;
+      if (state.mode === 'standardize') {
+        const accepted = files.slice(0, Math.max(0, 24 - state.batchFiles.length));
+        if (files.length > accepted.length) {
+          toast('已限制批量数量', '一次队列最多 24 张，超出的图片未加入。', 'bad');
+        }
+        accepted.forEach(file => readOneFile(file, true));
+      } else {
+        readOneFile(files[0], false);
+      }
+    }
+
+    function readOneFile(file, appendToBatch) {
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        if (!appendToBatch) {
+          state.uploadedFile = null;
+          state.uploadedPreview = '';
+        }
+        state.uploadError = '文件格式不支持。请选择 JPG、PNG 或 WEBP。';
+        toast('文件不可用', state.uploadError, 'bad');
+        renderUpload();
+        return;
+      }
+      if (file.size > 30 * 1024 * 1024) {
+        if (!appendToBatch) {
+          state.uploadedFile = null;
+          state.uploadedPreview = '';
+        }
+        state.uploadError = '图片超过 30MB。请压缩图片或选择更小的文件。';
+        toast('图片太大', state.uploadError, 'bad');
+        renderUpload();
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (appendToBatch) {
+          state.batchFiles.push({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            name: file.name,
+            size: file.size,
+            preview: reader.result
+          });
+          state.generationMessage = `批量队列已有 ${state.batchFiles.length} 张照片。`;
+        } else {
+          state.uploadedFile = file;
+          state.uploadedPreview = reader.result;
+          state.generationMessage = '图片已就绪，可以开始处理。';
+        }
+        toast('图片已选择', `${file.name} 已载入本地预览。`, 'good');
+        renderUpload();
+      };
+      reader.onerror = () => {
+        state.uploadError = '无法读取该图片。请换一张图片重试。';
+        renderUpload();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function startGeneration() {
+      if (state.isGenerating) return;
+      const isBatch = state.mode === 'standardize';
+      const targetCount = isBatch ? state.batchFiles.length : Number(Boolean(state.uploadedFile || state.uploadedPreview));
+      if (state.credits <= 0) {
+        toast('积分不足', '请先购买积分。', 'bad');
+        return;
+      }
+      if (targetCount <= 0) {
+        toast('缺少图片', isBatch ? '请先添加至少一张菜单照片。' : '请先上传原始照片。', 'bad');
+        return;
+      }
+      if (targetCount > state.credits) {
+        toast('积分不足', `已选择 ${targetCount} 张照片，但只有 ${state.credits} 个积分。`, 'bad');
+        return;
+      }
+      state.isGenerating = true;
+      state.progress = 4;
+      state.activeStep = 0;
+      state.generationMessage = isBatch ? `正在校验 ${targetCount} 张图片...` : '正在校验图片...';
+      const jobId = Date.now();
+      state.jobs.unshift({ id: jobId, name: isBatch ? `批量菜单 ${targetCount} 张` : state.uploadedFile?.name || '模拟照片', progress: 4, status: '生成中' });
+      renderUpload();
+      const stages = isBatch ? [
+        [12, 1, '正在统一检查批量图片尺寸和格式...'],
+        [26, 2, '正在锁定统一场景、灯光和比例...'],
+        [44, 3, `正在逐张识别 ${targetCount} 个菜品主体...`],
+        [64, 4, '正在把同一视觉风格套用到整组菜单图...'],
+        [86, 5, '正在批量生成和校验结果...'],
+        [100, 6, '批量生成成功']
+      ] : [
+        [14, 1, '正在优化上传图片...'],
+        [32, 2, 'AI 正在识别主体和构图...'],
+        [50, 3, '正在套用场景、灯光和比例...'],
+        [72, 4, '正在生成最终图片...'],
+        [90, 5, '正在保存到照片库...'],
+        [100, 6, '生成成功']
+      ];
+      let i = 0;
+      clearInterval(generationTimer);
+      generationTimer = setInterval(() => {
+        const [progress, step, msg] = stages[i];
+        state.progress = progress;
+        state.activeStep = step;
+        state.generationMessage = msg;
+        const job = state.jobs.find(j => j.id === jobId);
+        if (job) job.progress = progress;
+        const bar = document.querySelector('.progress-bar');
+        if (bar) bar.style.width = `${progress}%`;
+        i += 1;
+        if (i >= stages.length) {
+          clearInterval(generationTimer);
+          finishGeneration(jobId);
+        } else {
+          const msgNode = document.querySelector('.progress-card p');
+          if (msgNode) msgNode.textContent = msg;
+          renderUpload();
+        }
+      }, 720);
+    }
+
+    function finishGeneration(jobId) {
+      const isBatch = state.mode === 'standardize';
+      const sourceItems = isBatch
+        ? state.batchFiles
+        : [{
+          id: jobId,
+          name: state.uploadedFile?.name || '新生成照片',
+          size: state.uploadedFile?.size || 0,
+          preview: state.uploadedPreview
+        }];
+      const cost = sourceItems.length;
+      state.isGenerating = false;
+      state.credits = Math.max(0, state.credits - cost);
+      state.progress = 100;
+      state.activeStep = 6;
+      state.generationMessage = isBatch ? `批量生成成功，${cost} 张结果已保存到照片库。` : '生成成功，结果已保存到照片库。';
+      const job = state.jobs.find(j => j.id === jobId);
+      if (job) job.status = '已完成';
+      const photos = sourceItems.map((item, index) => ({
+        id: isBatch ? `${jobId}-${index + 1}` : jobId,
+        name: item.name?.replace(/\.[^.]+$/, '') || `菜单图 ${index + 1}`,
+        scene: state.scene,
+        lighting: state.lighting,
+        ratio: state.ratio,
+        mode: isBatch ? '统一风格' : '单张优化',
+        downloaded: false,
+        expired: false,
+        createdAt: '刚刚',
+        prompt: state.prompt,
+        preview: item.preview
+      }));
+      state.gallery = [...photos, ...state.gallery];
+      state.history.unshift({
+        type: isBatch ? '批量生成' : '生成',
+        detail: isBatch ? `统一风格批量生成 ${photos.length} 张，消耗 ${cost} 积分` : `${photos[0].name} 生成成功，消耗 1 积分`,
+        time: '刚刚'
+      });
+      state.selectedPhoto = photos[0];
+      if (isBatch) state.batchFiles = [];
+      toast(isBatch ? '批量生成成功' : '生成成功', isBatch ? `${photos.length} 张照片已加入照片库。` : '照片已加入照片库。', 'good');
+      if (isBatch) openBatchResult(photos);
+      else openResult(photos[0]);
+      renderUpload();
+    }
+
+    function openBatchResult(photos) {
+      resultContent.innerHTML = `
+        <div class="result-hero">
+          <div>
+            <strong>统一风格批量处理完成</strong>
+            <p>${photos.length} 张菜单照片已按同一套场景、灯光和比例生成，方便直接用于菜单、外卖平台或社媒物料。</p>
+          </div>
+          <span class="chip">${photos.length} 张结果</span>
+        </div>
+        <div class="gallery-grid">
+          ${photos.map(photo => `
+            <article class="photo-card">
+              <div class="photo-img">${photo.preview ? `<img src="${photo.preview}" alt="${escapeHtml(photo.name)}">` : ''}<span class="chip">${photo.mode}</span></div>
+              <div class="photo-body">
+                <h3>${escapeHtml(photo.name)}</h3>
+                <p>${photo.scene} · ${photo.lighting} · ${photo.ratio}</p>
+                <div class="photo-actions">
+                  <button class="btn primary" data-photo-download="${photo.id}">下载</button>
+                  <button class="btn" data-photo-view="${photo.id}">查看</button>
+                  <button class="btn" data-photo-reuse="${photo.id}">复用</button>
+                </div>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+        <div class="top-actions" style="justify-content:flex-start;margin-top:14px">
+          <button class="btn primary" data-batch-download="${photos.map(photo => photo.id).join(',')}">批量下载本次结果</button>
+          <button class="btn" data-nav="gallery">去照片库</button>
+          <button class="btn ghost" data-nav="upload">继续处理</button>
+        </div>
+      `;
+      modal.classList.add('open');
+      bindCommon();
+      bindPhotoActions();
+    }
+
+    function openResult(photo) {
+      resultContent.innerHTML = `
+        <div class="compare">
+          <div class="compare-pane">${photo.preview ? `<img src="${photo.preview}" alt="原图">` : ''}<span class="chip">原图</span></div>
+          <div class="compare-pane after">${photo.preview ? `<img src="${photo.preview}" alt="优化图">` : ''}<span class="chip">优化图预览</span></div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><h3>生成参数</h3><p>${photo.mode} · ${photo.scene} · ${photo.lighting} · ${photo.ratio}</p><p>${escapeHtml(photo.prompt)}</p></div>
+          <div class="card"><h3>下一步</h3><p>你可以下载图片，或复用这套参数继续处理下一张。</p><div class="top-actions" style="justify-content:flex-start;margin-top:10px"><button class="btn primary" data-photo-download="${photo.id}">下载</button><button class="btn" data-photo-reuse="${photo.id}">复用配置</button><button class="btn" data-nav="gallery">去照片库</button></div></div>
+        </div>
+      `;
+      modal.classList.add('open');
+      bindCommon();
+      bindPhotoActions();
+    }
+
+    function bindPhotoActions() {
+      document.querySelectorAll('[data-photo-view]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const photo = findPhoto(btn.dataset.photoView);
+          if (photo) openResult(photo);
+        });
+      });
+      document.querySelectorAll('[data-photo-download]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const photo = findPhoto(btn.dataset.photoDownload);
+          if (!photo) return;
+          if (photo.expired) {
+            toast('图片已过期', '过期图片不可下载，请重新生成。', 'bad');
+            return;
+          }
+          photo.downloaded = true;
+          state.history.unshift({ type: '下载', detail: `${photo.name} 已下载`, time: '刚刚' });
+          toast('下载已模拟完成', `${photo.name} 标记为已下载。`, 'good');
+          render();
+        });
+      });
+      document.querySelectorAll('[data-photo-reuse]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const photo = findPhoto(btn.dataset.photoReuse);
+          if (!photo) return;
+          state.scene = photo.scene;
+          state.lighting = photo.lighting;
+          state.ratio = photo.ratio;
+          state.mode = photo.mode === '统一风格' ? 'standardize' : 'enhance';
+          state.prompt = photo.prompt;
+          modal.classList.remove('open');
+          toast('配置已复用', '已带入生成页，可继续上传下一张。', 'good');
+          setPage('upload');
+        });
+      });
+      document.querySelectorAll('[data-photo-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const photo = findPhoto(btn.dataset.photoDelete);
+          if (!photo) return;
+          state.gallery = state.gallery.filter(p => p.id !== photo.id);
+          state.history.unshift({ type: '删除', detail: `${photo.name} 已删除`, time: '刚刚' });
+          toast('已删除', `${photo.name} 已从照片库移除。`);
+          renderGallery();
+        });
+      });
+      document.querySelectorAll('[data-batch-download]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ids = btn.dataset.batchDownload.split(',').filter(Boolean);
+          const photos = ids.map(findPhoto).filter(photo => photo && !photo.expired);
+          photos.forEach(photo => photo.downloaded = true);
+          state.history.unshift({ type: '下载', detail: `批量下载本次结果 ${photos.length} 张`, time: '刚刚' });
+          toast('批量下载完成', `${photos.length} 张本次生成结果已标记为下载。`, 'good');
+          render();
+        });
+      });
+      const downloadAll = document.querySelector('[data-action="download-all"]');
+      if (downloadAll) {
+        downloadAll.addEventListener('click', () => {
+          const available = state.gallery.filter(p => !p.expired);
+          available.forEach(p => p.downloaded = true);
+          state.history.unshift({ type: '下载', detail: `批量下载 ${available.length} 张可用图片`, time: '刚刚' });
+          toast('批量下载完成', `${available.length} 张图片已标记为下载。`, 'good');
+          renderGallery();
+        });
+      }
+    }
+
+    function bindCommon() {
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modal.classList.remove('open');
+          setPage(btn.dataset.nav);
+        });
+      });
+    }
+
+    function findPhoto(id) {
+      return state.gallery.find(photo => String(photo.id) === String(id));
+    }
+
+    function useLastPreset() {
+      const last = state.gallery.find(photo => !photo.expired);
+      if (!last) {
+        toast('没有可复用配置', '照片库里还没有可用图片。', 'bad');
+        return;
+      }
+      state.scene = last.scene;
+      state.lighting = last.lighting;
+      state.ratio = last.ratio;
+      state.mode = last.mode === '统一风格' ? 'standardize' : 'enhance';
+      state.prompt = last.prompt;
+      toast('已套用配置', `来自 ${last.name}。`, 'good');
+      renderUpload();
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '未知大小';
+      if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+      return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function toast(title, message, type = '') {
+      const area = document.getElementById('toast-area');
+      const node = document.createElement('div');
+      node.className = 'toast';
+      node.innerHTML = `<strong>${title}</strong><span class="small">${message}</span>`;
+      if (type === 'bad') node.style.borderColor = 'rgba(180,35,24,.45)';
+      if (type === 'good') node.style.borderColor = 'rgba(17,132,91,.35)';
+      area.appendChild(node);
+      setTimeout(() => node.remove(), 3600);
+    }
+
+    document.querySelectorAll('[data-nav]').forEach(btn => {
+      btn.addEventListener('click', () => setPage(btn.dataset.nav));
+    });
+    document.querySelector('[data-action="close-modal"]').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', event => {
+      if (event.target === modal) modal.classList.remove('open');
+    });
+    document.querySelector('[data-action="reset-demo"]').addEventListener('click', () => {
+      clearInterval(generationTimer);
+      state = initialState();
+      toast('已重置', '所有 mock 数据已恢复默认。');
+      render();
+    });
+    document.querySelector('[data-action="simulate-low-credit"]').addEventListener('click', () => {
+      state.credits = 1;
+      toast('已切换低积分状态', '现在可以测试积分不足边界。', 'bad');
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
