@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>外卖菜单增长功能页</title>
+  <meta name="description" content="面向外卖驱动型中小商家的 AI 菜品优化增值功能页。">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #151216;
+      --muted: #706b75;
+      --line: rgba(21, 18, 22, .12);
+      --bg: #f6f4ef;
+      --paper: #fffefd;
+      --orange: #f47c00;
+      --orange-dark: #884700;
+      --orange-soft: #fff0dc;
+      --green: #1e8f5b;
+      --green-soft: #e8f6ee;
+      --blue: #285bd7;
+      --blue-soft: #eaf0ff;
+      --red: #d14338;
+      --red-soft: #ffeceb;
+      --dark: #171217;
+      --shadow: 0 24px 70px rgba(62, 42, 18, .14);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(244,124,0,.16), transparent 30%),
+        linear-gradient(180deg, #fffefd 0%, var(--bg) 52%, #fff7ec 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; cursor: pointer; }
+    h1, h2, h3, h4, p { margin-top: 0; }
+    a { color: inherit; text-decoration: none; }
+
+    .wrap {
+      width: min(1220px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 950;
+    }
+
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, #ffad46, var(--orange));
+      box-shadow: 0 14px 30px rgba(244,124,0,.25);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 0 15px;
+      background: #fff;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 950;
+      box-shadow: 0 12px 26px rgba(21,18,22,.06);
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      border: 0;
+      color: #fff;
+      background: linear-gradient(135deg, #ff9d35, var(--orange));
+      box-shadow: 0 16px 36px rgba(244,124,0,.26);
+    }
+
+    .hero {
+      padding: 44px 0 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(420px, .86fr);
+      gap: 26px;
+      align-items: center;
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 20px;
+    }
+
+    .eyebrow, .pill {
+      width: fit-content;
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .eyebrow {
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+      border-color: rgba(244,124,0,.22);
+    }
+
+    .pill.good { color: var(--green); background: var(--green-soft); border-color: rgba(30,143,91,.18); }
+    .pill.blue { color: var(--blue); background: var(--blue-soft); border-color: rgba(40,91,215,.18); }
+    .pill.warn { color: var(--orange-dark); background: var(--orange-soft); border-color: rgba(244,124,0,.22); }
+    .pill.bad { color: var(--red); background: var(--red-soft); border-color: rgba(209,67,56,.18); }
+    .pill.dark { color: #fff; background: #20181f; border-color: transparent; }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(44px, 6.6vw, 82px);
+      line-height: .98;
+      letter-spacing: 0;
+      max-width: 800px;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(19px, 2vw, 24px);
+      line-height: 1.52;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hero-actions .btn {
+      min-height: 56px;
+      padding: 0 20px;
+      font-size: 17px;
+    }
+
+    .segment {
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 28px;
+      background: rgba(255,255,255,.84);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .segment-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .segment-head h3 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .persona-grid {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .persona {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .persona h4 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .persona p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .meter {
+      width: 118px;
+      height: 10px;
+      border-radius: 999px;
+      background: #ebe4db;
+      overflow: hidden;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #ff9d35, var(--orange));
+    }
+
+    .section {
+      padding: 38px 0 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 20px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(32px, 4.4vw, 54px);
+      line-height: 1.06;
+      letter-spacing: 0;
+      max-width: 790px;
+    }
+
+    .section-head p {
+      max-width: 560px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .value-card, .feature-card, .package-card, .rule-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 16px 44px rgba(21,18,22,.07);
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .value-card strong {
+      font-size: 34px;
+      line-height: 1;
+      color: var(--orange-dark);
+    }
+
+    .value-card h3, .feature-card h3, .package-card h3, .rule-card h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .value-card p, .feature-card p, .package-card p, .rule-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .feature-card {
+      min-height: 250px;
+      align-content: start;
+    }
+
+    .feature-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .score {
+      color: var(--orange-dark);
+      font-size: 32px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .feature-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .matrix {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.15fr .78fr .78fr 1.08fr;
+      min-height: 72px;
+      border-bottom: 1px solid var(--line);
+      align-items: stretch;
+    }
+
+    .row:last-child { border-bottom: 0; }
+    .row > div {
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      font-weight: 850;
+      line-height: 1.38;
+    }
+
+    .row.head {
+      color: #fff;
+      background: var(--dark);
+    }
+
+    .row .now { background: var(--green-soft); color: var(--green); }
+    .row .auth { background: var(--blue-soft); color: var(--blue); }
+    .row .data { background: var(--orange-soft); color: var(--orange-dark); }
+
+    .package-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .package-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .package-card.featured {
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(244,124,0,.92), rgba(32,24,31,.94)),
+        url("assets/hamberger.jpeg") center / cover;
+      border-color: transparent;
+    }
+
+    .package-card.featured p,
+    .package-card.featured li {
+      color: rgba(255,255,255,.78);
+    }
+
+    .package-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .price {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      color: var(--orange-dark);
+    }
+
+    .featured .price { color: #fff; }
+
+    .price strong {
+      font-size: 52px;
+      line-height: 1;
+    }
+
+    .rule-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .food-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .food-card {
+      min-height: 190px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #eee center / cover no-repeat;
+      position: relative;
+      box-shadow: 0 16px 44px rgba(21,18,22,.08);
+    }
+
+    .food-card:nth-child(1) { background-image: url("assets/hamberger.jpeg"); }
+    .food-card:nth-child(2) { background-image: url("assets/beal.jpeg"); }
+    .food-card:nth-child(3) { background-image: url("assets/fish.jpeg"); }
+    .food-card:nth-child(4) { background-image: url("assets/hotdog.png"); background-size: contain; background-color: #fff; }
+    .food-card:nth-child(5) { background-image: url("assets/hamberger.jpeg"); filter: saturate(1.08) brightness(1.04); }
+
+    .food-card span {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      right: 10px;
+      min-height: 36px;
+      border-radius: 999px;
+      padding: 0 11px;
+      color: #fff;
+      background: rgba(21,18,22,.72);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 390px;
+      z-index: 30;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #fff;
+      background: var(--dark);
+      box-shadow: 0 24px 70px rgba(21,18,22,.25);
+      font-weight: 850;
+      line-height: 1.42;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: .22s ease;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 1040px) {
+      .hero, .section-head { grid-template-columns: 1fr; display: grid; }
+      .hero { grid-template-columns: 1fr; }
+      .value-grid, .feature-grid, .package-grid, .rule-grid { grid-template-columns: 1fr 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .row > div { min-height: 54px; }
+      .food-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 24px, 1220px); }
+      .nav { align-items: flex-start; flex-direction: column; padding-top: 12px; }
+      .nav-links .btn:not(.primary) { display: none; }
+      .hero { padding-top: 28px; }
+      .value-grid, .feature-grid, .package-grid, .rule-grid, .food-strip { grid-template-columns: 1fr; }
+      .persona { grid-template-columns: 1fr; }
+      .meter { width: 100%; }
+      .toast { left: 14px; right: 14px; bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <div class="brand">
+        <div class="logo">增</div>
+        <div>
+          外卖菜单增长包
+          <div style="color:var(--muted);font-size:12px;margin-top:2px">给高频外卖商家的 AI 增值功能</div>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a class="btn" href="boss.html">老板落地页</a>
+        <a class="btn" href="#matrix">能力边界</a>
+        <button class="btn primary" data-action="demo">查看增长包</button>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">核心付费客群：外卖驱动型中小商家</span>
+        <h1>他们不是想玩 AI，是想多接单、少试错。</h1>
+        <p class="lead">面向 25-44 岁、外卖订单占比高、经营披萨/汉堡/日料/中餐/炸鸡/小吃的老板。功能要围绕曝光、点击率、转化率、客单价和复购，而不是泛泛地“菜单变好看”。</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#features">看可做增值项</a>
+          <a class="btn" href="#packages">看怎么卖</a>
+        </div>
+      </div>
+
+      <div class="segment">
+        <div class="segment-head">
+          <h3>谁最愿意付费</h3>
+          <span class="pill warn">25%-35% 核心客群</span>
+        </div>
+        <div class="persona-grid">
+          <div class="persona">
+            <div><h4>披萨、汉堡、日料、中餐、炸鸡、小吃</h4><p>竞争强，图片、标题、套餐直接影响订单。</p></div>
+            <div><span class="pill good">最高</span><div class="meter" style="margin-top:8px"><span style="--w:92%"></span></div></div>
+          </div>
+          <div class="persona">
+            <div><h4>云厨房 / 虚拟品牌</h4><p>完全依赖平台流量，愿意快速测爆品和价格。</p></div>
+            <div><span class="pill good">很高</span><div class="meter" style="margin-top:8px"><span style="--w:86%"></span></div></div>
+          </div>
+          <div class="persona">
+            <div><h4>年轻店主 25-34 岁</h4><p>更愿意尝试 AI，只要结果直接影响接单。</p></div>
+            <div><span class="pill blue">高</span><div class="meter" style="margin-top:8px"><span style="--w:78%"></span></div></div>
+          </div>
+          <div class="persona">
+            <div><h4>区域连锁 / 小连锁</h4><p>有预算和复制需求，但会要求数据看板更专业。</p></div>
+            <div><span class="pill warn">中高</span><div class="meter" style="margin-top:8px"><span style="--w:68%"></span></div></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">产品承诺</span>
+          <h2>增值项要围绕四个数字，让老板觉得能回本。</h2>
+        </div>
+        <p>首层仍然是图片优化，但对核心客群要升级成“菜品增长”。老板付费不是为了 AI，而是为了让菜更容易被点、更容易加购。</p>
+      </div>
+      <div class="value-grid">
+        <div class="value-card"><strong>点击</strong><h3>先让菜被点开</h3><p>图片、标题、菜名顺眼，列表里更抢眼。</p></div>
+        <div class="value-card"><strong>转化</strong><h3>看完愿意下单</h3><p>描述说清分量、口味、适合几人，减少犹豫。</p></div>
+        <div class="value-card"><strong>客单</strong><h3>套餐和加购</h3><p>把主菜、饮品、小食组合成更好买的套餐。</p></div>
+        <div class="value-card"><strong>试错</strong><h3>少乱上新</h3><p>用菜单结构和历史数据识别潜力菜、问题菜。</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">可做增值项</span>
+          <h2>哪些功能我们有能力加，哪些要靠 99Food 或更多数据。</h2>
+        </div>
+        <p>这里按“现在就能做、接菜单后能做、拿到经营数据后更强”分层，避免承诺拿不到的数据。</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill good">现在就能做</span><span class="score">高</span></div>
+          <h3>菜品图片优化</h3>
+          <p>所有用户都能用，是付费入口。</p>
+          <ul>
+            <li>真实提亮、裁切、清理杂乱</li>
+            <li>统一门店风格</li>
+            <li>生成外卖主图尺寸</li>
+          </ul>
+        </article>
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill good">现在就能做</span><span class="score">高</span></div>
+          <h3>菜品标题/描述优化</h3>
+          <p>用户上传菜名或照片后即可生成。</p>
+          <ul>
+            <li>标题更具体：规格、主料、口味</li>
+            <li>描述写清分量和卖点</li>
+            <li>适合平台列表展示</li>
+          </ul>
+        </article>
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill blue">99Food 后更强</span><span class="score">很高</span></div>
+          <h3>套餐组合建议</h3>
+          <p>有菜单结构、价格、加料组后更靠谱。</p>
+          <ul>
+            <li>主菜 + 饮品 + 小食组合</li>
+            <li>套餐说明自动生成</li>
+            <li>加购项放到合适菜品上</li>
+          </ul>
+        </article>
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill blue">99Food 后可做</span><span class="score">高</span></div>
+          <h3>价格/促销建议</h3>
+          <p>菜单价格可做基础判断，销量数据会让建议更准。</p>
+          <ul>
+            <li>同类价格梯度检查</li>
+            <li>活动价是否有吸引力</li>
+            <li>套餐价与单点价对比</li>
+          </ul>
+        </article>
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill warn">需要订单数据</span><span class="score">很高</span></div>
+          <h3>爆品识别与下架建议</h3>
+          <p>只靠菜单不能判断真爆品，需要曝光、点击、下单或销量。</p>
+          <ul>
+            <li>高曝光低转化菜</li>
+            <li>低销量但高毛利潜力菜</li>
+            <li>长期拖累菜单的菜</li>
+          </ul>
+        </article>
+        <article class="feature-card">
+          <div class="feature-top"><span class="pill warn">需要评价数据</span><span class="score">中高</span></div>
+          <h3>差评分析反推菜品</h3>
+          <p>需要评价文本、退款原因或客服反馈。</p>
+          <ul>
+            <li>分量、口味、包装问题归因</li>
+            <li>菜品描述是否误导</li>
+            <li>下次优化优先级</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="matrix">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">能力边界</span>
+          <h2>功能页要坦诚：哪些是菜单字段能支持，哪些不是。</h2>
+        </div>
+        <p>99Food 菜单接口能拿到菜名、描述、图片、价格、分类、状态、加料组。它不能直接告诉我们点击率、销量、差评或官方菜品分。</p>
+      </div>
+      <div class="matrix">
+        <div class="row head">
+          <div>AI 功能</div>
+          <div>无 99Food</div>
+          <div>有 99Food 菜单</div>
+          <div>还需要什么才更准</div>
+        </div>
+        <div class="row">
+          <div>图片优化 / 菜品卡</div>
+          <div class="now">可做</div>
+          <div class="auth">自动匹配菜名</div>
+          <div>不强依赖经营数据</div>
+        </div>
+        <div class="row">
+          <div>标题 / 描述优化</div>
+          <div class="now">可做</div>
+          <div class="auth">批量整店处理</div>
+          <div>品类知识 + 老板确认</div>
+        </div>
+        <div class="row">
+          <div>套餐组合建议</div>
+          <div class="now">可做基础版</div>
+          <div class="auth">基于分类/价格/加料组更准</div>
+          <div>订单搭配数据会更强</div>
+        </div>
+        <div class="row">
+          <div>价格 / 促销建议</div>
+          <div class="now">只能做文案与套餐价建议</div>
+          <div class="auth">可检查价格梯度</div>
+          <div>销量、毛利、竞品价格</div>
+        </div>
+        <div class="row">
+          <div>爆品识别 / 下架建议</div>
+          <div class="data">不建议承诺</div>
+          <div class="data">菜单字段只能做潜力判断</div>
+          <div>曝光、点击、订单、销量</div>
+        </div>
+        <div class="row">
+          <div>差评分析</div>
+          <div class="data">不建议承诺</div>
+          <div class="data">菜单接口不含评价</div>
+          <div>评价文本、退款原因、客服反馈</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="packages">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">怎么包装售卖</span>
+          <h2>首单卖图片包，进阶卖增长包，99Food 是提效加速器。</h2>
+        </div>
+        <p>对高意愿付费商家，不能只卖“修图”。要把功能包装成从图片到菜单增长的连续路径。</p>
+      </div>
+      <div class="package-grid">
+        <article class="package-card">
+          <span class="pill good">入口产品</span>
+          <h3>6 道菜菜单包</h3>
+          <div class="price"><strong>¥49</strong><span>首单</span></div>
+          <p>让老板第一次付费。</p>
+          <ul>
+            <li>6 张菜单图</li>
+            <li>6 条菜品描述</li>
+            <li>保存门店风格</li>
+          </ul>
+        </article>
+        <article class="package-card featured">
+          <span class="pill dark">核心增值</span>
+          <h3>外卖菜品增长包</h3>
+          <div class="price"><strong>¥199</strong><span>/ 月</span></div>
+          <p>给外卖强品类老板。</p>
+          <ul>
+            <li>每月 30 张图</li>
+            <li>标题/描述批量优化</li>
+            <li>套餐和加购建议</li>
+            <li>价格梯度检查</li>
+          </ul>
+        </article>
+        <article class="package-card">
+          <span class="pill blue">99Food 增值</span>
+          <h3>自动菜单优化</h3>
+          <div class="price"><strong>¥399</strong><span>/ 月</span></div>
+          <p>给多平台和小连锁。</p>
+          <ul>
+            <li>自动读取菜单</li>
+            <li>整店问题清单</li>
+            <li>批量优化建议</li>
+            <li>后续接订单数据做爆品分析</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">功能优先级</span>
+          <h2>建议先做这 4 个增值项，最容易卖给核心客群。</h2>
+        </div>
+      </div>
+      <div class="rule-grid">
+        <div class="rule-card"><span class="pill good">P0</span><h3>菜品图 + 标题 + 描述一键成卡</h3><p>不依赖 99Food，最容易让老板第一次付费。</p></div>
+        <div class="rule-card"><span class="pill good">P0</span><h3>6 道菜菜单包 / 30 张月包</h3><p>把能力产品化，不卖单个功能，卖可交付结果。</p></div>
+        <div class="rule-card"><span class="pill blue">P1</span><h3>99Food 自动匹配菜单</h3><p>授权后减少手动录入，并开启整店批量优化。</p></div>
+        <div class="rule-card"><span class="pill warn">P2</span><h3>爆品和定价分析</h3><p>需要订单、点击、评价等数据。可以先做“潜力菜建议”，不要假装知道真实爆品。</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="food-strip">
+        <div class="food-card"><span>汉堡套餐：图 + 标题 + 描述</span></div>
+        <div class="food-card"><span>热卖主菜：套餐建议</span></div>
+        <div class="food-card"><span>日料/海鲜：真实提亮</span></div>
+        <div class="food-card"><span>小吃：平台主图</span></div>
+        <div class="food-card"><span>连锁门店：风格复用</span></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const toast = document.querySelector("#toast");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    document.addEventListener("click", (event) => {
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (!action) return;
+      if (action === "demo") {
+        document.querySelector("#features").scrollIntoView({ behavior: "smooth", block: "start" });
+        showToast("建议先卖图片 + 标题 + 描述 + 套餐建议，再用 99Food 做自动匹配。");
+      }
+    });
+  </script>
+</body>
+</html>
