@@ -63,14 +63,9 @@
     }
 
     .logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      color: #fff;
-      background: linear-gradient(135deg, #ffad46, var(--orange));
-      display: grid;
-      place-items: center;
-      box-shadow: 0 15px 32px rgba(244,124,0,.25);
+      width: 132px;
+      height: auto;
+      display: block;
     }
 
     .top small {
@@ -606,6 +601,7 @@
       .actions .btn, .btn.primary { width: 100%; }
       .pack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .toast { left: 14px; right: 14px; bottom: 14px; }
+      .logo { width: 112px; }
     }
   </style>
 </head>
@@ -613,7 +609,7 @@
   <div class="page">
     <header class="top">
       <div class="brand">
-        <div class="logo">AI</div>
+        <img class="logo" src="../saboriza-opc/assets/opc-logo.svg" alt="OPC" />
         <div>
           菜单图片助手
           <small>先让一张图变好，再做整店菜单</small>

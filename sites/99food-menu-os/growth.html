@@ -63,14 +63,9 @@
     }
 
     .logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      background: linear-gradient(135deg, #ffad46, var(--orange));
-      box-shadow: 0 14px 30px rgba(244,124,0,.25);
+      width: 126px;
+      height: auto;
+      display: block;
     }
 
     .nav-links {
@@ -493,6 +488,7 @@
       .value-grid, .feature-grid, .package-grid, .rule-grid, .food-strip { grid-template-columns: 1fr; }
       .persona { grid-template-columns: 1fr; }
       .meter { width: 100%; }
+      .logo { width: 106px; }
       .toast { left: 14px; right: 14px; bottom: 14px; }
     }
   </style>
@@ -501,7 +497,7 @@
   <div class="wrap">
     <nav class="nav">
       <div class="brand">
-        <div class="logo">增</div>
+        <img class="logo" src="../saboriza-opc/assets/opc-logo.svg" alt="OPC" />
         <div>
           外卖菜单增长包
           <div style="color:var(--muted);font-size:12px;margin-top:2px">给高频外卖商家的 AI 增值功能</div>
