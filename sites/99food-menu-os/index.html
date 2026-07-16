@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>菜单图片助手</title>
+  <meta name="description" content="上传一张菜品照，生成适合外卖平台的真实菜单图和菜品卡。">
+  <style>
+    :root {
+      color-scheme: light;
+      --orange: #f47c00;
+      --orange-dark: #8b4600;
+      --orange-soft: #fff1df;
+      --ink: #171217;
+      --muted: #756d78;
+      --line: rgba(23, 18, 23, .12);
+      --panel: #fffefd;
+      --bg: #f7f3ed;
+      --green: #1f9d62;
+      --green-soft: #e8f7ee;
+      --blue: #285bd7;
+      --blue-soft: #e9efff;
+      --red: #d73d3d;
+      --red-soft: #ffeaea;
+      --shadow: 0 28px 80px rgba(84, 50, 12, .15);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(244,124,0,.18), transparent 32%),
+        linear-gradient(180deg, #fffefd 0%, var(--bg) 50%, #fff7ec 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3, h4, p { margin-top: 0; }
+
+    .page {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 22px 0 52px;
+    }
+
+    .top {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 950;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, #ffad46, var(--orange));
+      display: grid;
+      place-items: center;
+      box-shadow: 0 15px 32px rgba(244,124,0,.25);
+    }
+
+    .top small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .demo-switch {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip, .demo-switch button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .demo-switch button.active {
+      color: var(--orange-dark);
+      border-color: rgba(244,124,0,.3);
+      background: var(--orange-soft);
+    }
+
+    .hero {
+      min-height: calc(100vh - 110px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(390px, .82fr);
+      gap: 26px;
+      align-items: center;
+      padding: 28px 0 34px;
+    }
+
+    .hero-copy {
+      display: grid;
+      gap: 22px;
+      align-content: center;
+    }
+
+    .badge {
+      width: fit-content;
+      border-radius: 999px;
+      padding: 9px 13px;
+      color: var(--orange-dark);
+      background: var(--orange-soft);
+      border: 1px solid rgba(244,124,0,.22);
+      font-weight: 950;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 680px;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(19px, 2vw, 25px);
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 0 18px;
+      background: #fff;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 950;
+      text-decoration: none;
+      box-shadow: 0 14px 30px rgba(23,18,23,.06);
+    }
+
+    .btn.primary {
+      min-height: 60px;
+      padding: 0 24px;
+      border: 0;
+      color: #fff;
+      background: linear-gradient(135deg, #ff9f38, var(--orange));
+      box-shadow: 0 20px 42px rgba(244,124,0,.28);
+      font-size: 19px;
+    }
+
+    .trust {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hero-demo, .panel {
+      border: 1px solid rgba(255,255,255,.74);
+      border-radius: 26px;
+      background: rgba(255,255,255,.86);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-demo { padding: 16px; }
+
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .photo {
+      min-height: 340px;
+      border-radius: 19px;
+      position: relative;
+      overflow: hidden;
+      background: #eee center / cover no-repeat;
+    }
+
+    .photo.before {
+      background-image: url("assets/hotdog.png");
+      background-size: contain;
+      background-color: #f1eee9;
+      filter: saturate(.76) brightness(.82);
+    }
+
+    .photo.after {
+      background-image:
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.08)),
+        url("assets/hotdog.png");
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #fff7ed;
+      filter: saturate(1.12) contrast(1.05) brightness(1.07);
+    }
+
+    .tag {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 0 10px;
+      color: #fff;
+      background: rgba(23,18,23,.72);
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .demo-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-weight: 750;
+    }
+
+    .section {
+      padding: 34px 0 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-end;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      max-width: 560px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fff;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .step-no {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      color: #fff;
+      background: var(--orange);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .step h3 { margin: 0; font-size: 21px; }
+    .step p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .trial {
+      display: grid;
+      grid-template-columns: .86fr 1.14fr;
+      gap: 16px;
+    }
+
+    .upload-card {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .upload-box {
+      min-height: 260px;
+      border: 2px dashed rgba(244,124,0,.32);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.64), rgba(255,242,223,.72)),
+        url("assets/fish.jpeg") center / cover;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .upload-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,.62);
+    }
+
+    .upload-box div {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      padding: 18px;
+    }
+
+    .upload-box strong {
+      font-size: 26px;
+      color: var(--orange-dark);
+    }
+
+    .results {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .result-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fff;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 210px auto;
+    }
+
+    .result-photo {
+      background: #f6f2ec center / cover no-repeat;
+      position: relative;
+    }
+
+    .result-photo.clean {
+      background-image: url("assets/hamberger.jpeg");
+      filter: brightness(1.08) saturate(1.08);
+    }
+
+    .result-photo.platform {
+      background-image: url("assets/beal.jpeg");
+      filter: contrast(1.04) brightness(1.05) saturate(1.1);
+    }
+
+    .result-photo.premium {
+      background-image: url("assets/fish.jpeg");
+      filter: contrast(1.08) brightness(1.03) saturate(1.16);
+    }
+
+    .result-body {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-body h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .result-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .liked {
+      outline: 3px solid rgba(244,124,0,.34);
+    }
+
+    .deliverable {
+      display: grid;
+      grid-template-columns: .92fr 1.08fr;
+      gap: 16px;
+    }
+
+    .dish-card {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .dish-preview {
+      min-height: 320px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(0,0,0,.08)),
+        url("assets/hamberger.jpeg") center / cover;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dish-info {
+      display: grid;
+      gap: 9px;
+    }
+
+    .dish-info h3 {
+      margin: 0;
+      font-size: 25px;
+    }
+
+    .dish-info p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .check {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      padding: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-weight: 900;
+    }
+
+    .pay-card {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      align-content: center;
+      background:
+        linear-gradient(135deg, rgba(255,241,223,.9), rgba(255,255,255,.94)),
+        var(--panel);
+    }
+
+    .price {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      color: var(--orange-dark);
+    }
+
+    .price strong {
+      font-size: 58px;
+      line-height: 1;
+    }
+
+    .pack-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .pack-item {
+      min-height: 150px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 100px auto;
+    }
+
+    .pack-img {
+      background: #eee center / cover no-repeat;
+      position: relative;
+    }
+
+    .pack-img.done { background-image: url("assets/hamberger.jpeg"); }
+    .pack-img.next { background-image: url("assets/hotdog.png"); background-size: contain; background-color: #fff; }
+    .pack-img.locked {
+      background:
+        repeating-linear-gradient(45deg, #f2ede5 0 10px, #e6dfd3 10px 20px);
+    }
+
+    .pack-item span {
+      padding: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .feature {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      background: rgba(255,255,255,.82);
+      display: grid;
+      gap: 9px;
+    }
+
+    .feature h3 { margin: 0; font-size: 21px; }
+    .feature p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .food99 {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 22px;
+      background:
+        linear-gradient(135deg, #19131f, #352315);
+      color: #fff;
+    }
+
+    .food99 p { margin: 8px 0 0; color: rgba(255,255,255,.72); line-height: 1.5; }
+    .food99 .chip { color: #fff; background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.18); }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 380px;
+      border-radius: 18px;
+      padding: 15px 17px;
+      color: #fff;
+      background: #171217;
+      box-shadow: 0 24px 70px rgba(23,18,23,.24);
+      font-weight: 850;
+      line-height: 1.4;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: .22s ease;
+      z-index: 10;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 940px) {
+      .hero, .trial, .deliverable, .food99 { grid-template-columns: 1fr; }
+      .photo { min-height: 260px; }
+      .steps, .result-grid, .feature-grid { grid-template-columns: 1fr; }
+      .pack-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .section-head { display: grid; }
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 24px, 1180px); padding-top: 12px; }
+      .top { align-items: flex-start; flex-direction: column; }
+      .demo-switch { justify-content: flex-start; }
+      .hero { min-height: auto; padding-top: 20px; }
+      .compare { grid-template-columns: 1fr; }
+      .actions .btn, .btn.primary { width: 100%; }
+      .pack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toast { left: 14px; right: 14px; bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          菜单图片助手
+          <small>先让一张图变好，再做整店菜单</small>
+        </div>
+      </div>
+      <div class="demo-switch" aria-label="演示状态">
+        <button class="active" data-demo="start">首次试用</button>
+        <button data-demo="liked">已选效果</button>
+        <button data-demo="paid">菜单包</button>
+        <button data-demo="food99">99Food 增值</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="start">
+        <div class="hero-copy">
+          <div class="badge">不用注册，不用连接平台，先看效果</div>
+          <h1>发我一张菜品照，马上变成能上外卖的菜单图。</h1>
+          <p class="lead">我们不把菜做假，不乱加食材。只帮你把真实菜品修得更亮、更干净、更像顾客愿意点的外卖主图。</p>
+          <div class="actions">
+            <button class="btn primary" data-action="try-one">免费试一张</button>
+            <button class="btn" data-scroll="results">先看生成效果</button>
+          </div>
+          <div class="trust">
+            <span class="chip">不改菜量</span>
+            <span class="chip">不乱加配料</span>
+            <span class="chip">保留真实出品</span>
+            <span class="chip">满意后再付费</span>
+          </div>
+        </div>
+
+        <div class="hero-demo">
+          <div class="compare">
+            <div class="photo before"><span class="tag">手机原图</span></div>
+            <div class="photo after"><span class="tag">菜单图效果</span></div>
+          </div>
+          <div class="demo-caption">
+            <span>第一眼就要让老板看到差异。</span>
+            <span class="chip">约 10 秒出预览</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <span class="badge">首体验只做这三步</span>
+            <h2>别让老板学习，直接给他结果。</h2>
+          </div>
+          <p>第一次不讲模板、不讲诊断、不讲 99Food。让他上传一张，选一个喜欢的，再告诉他可以做成一套。</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-no">1</div>
+            <h3>上传一张</h3>
+            <p>老板只需要发一张手机菜品照，不填参数。</p>
+          </div>
+          <div class="step">
+            <div class="step-no">2</div>
+            <h3>选喜欢的</h3>
+            <p>系统给 3 个真实方向，老板点“喜欢这个”。</p>
+          </div>
+          <div class="step">
+            <div class="step-no">3</div>
+            <h3>做成一套</h3>
+            <p>第一张满意后，引导再传 5 张，生成 6 道菜菜单包。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="results">
+        <div class="section-head">
+          <div>
+            <span class="badge">免费试用结果</span>
+            <h2>一次给 3 个能懂的版本。</h2>
+          </div>
+          <p>版本名不用专业术语，只说老板能判断的话：清楚、适合外卖、更有质感。</p>
+        </div>
+
+        <div class="trial">
+          <div class="panel upload-card">
+            <div class="upload-box">
+              <div>
+                <strong>上传菜品照片</strong>
+                <span class="chip">演示中已放入一张样例</span>
+              </div>
+            </div>
+            <button class="btn primary" data-action="try-one">免费生成 3 个版本</button>
+            <p style="margin:0;color:var(--muted);line-height:1.5">真实产品里这里就是拍照/上传入口。不要先问风格，先让老板看到结果。</p>
+          </div>
+
+          <div class="panel results">
+            <div class="result-grid">
+              <article class="result-card" data-style-card="clean">
+                <div class="result-photo clean"><span class="tag">版本 A</span></div>
+                <div class="result-body">
+                  <h3>更亮更清楚</h3>
+                  <p>最安全，不改变菜品和背景，只让照片更能看清。</p>
+                  <button class="btn" data-action="like-style" data-style="更亮更清楚">喜欢这个</button>
+                </div>
+              </article>
+              <article class="result-card" data-style-card="platform">
+                <div class="result-photo platform"><span class="tag">版本 B</span></div>
+                <div class="result-body">
+                  <h3>外卖主图版</h3>
+                  <p>主体更突出，适合放在外卖平台菜单列表里。</p>
+                  <button class="btn" data-action="like-style" data-style="外卖主图版">喜欢这个</button>
+                </div>
+              </article>
+              <article class="result-card" data-style-card="premium">
+                <div class="result-photo premium"><span class="tag">版本 C</span></div>
+                <div class="result-body">
+                  <h3>质感增强版</h3>
+                  <p>看起来更精致，适合客单价更高的菜。</p>
+                  <button class="btn" data-action="like-style" data-style="质感增强版">喜欢这个</button>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="deliverable">
+        <div class="section-head">
+          <div>
+            <span class="badge">付费转化点</span>
+            <h2>不要卖“修图”，卖一套能用的菜单资料包。</h2>
+          </div>
+          <p>老板付费买的是省事：图片、菜名、介绍、尺寸、风格都整理好，可以交给员工或运营直接用。</p>
+        </div>
+
+        <div class="deliverable">
+          <div class="panel dish-card">
+            <div class="dish-preview"><span class="tag">已整理好第 1 道菜</span></div>
+            <div class="dish-info">
+              <h3>Double Smash Burger 套餐</h3>
+              <p>双层牛肉饼配切达芝士，外焦里嫩，适合想吃饱的一人套餐。</p>
+              <div class="trust">
+                <span class="chip">外卖主图尺寸</span>
+                <span class="chip">菜名更清楚</span>
+                <span class="chip">介绍已写好</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel pay-card">
+            <span class="badge">已经记住你喜欢的效果</span>
+            <h2 style="margin:0;font-size:38px">再传 5 张，今天做成一套菜单图。</h2>
+            <p style="margin:0;color:var(--muted);font-size:18px;line-height:1.5">首单不是买一张图片，而是拿到 6 道菜的菜单资料包：统一风格图片、菜名、介绍和平台尺寸。</p>
+            <div class="price"><strong>¥49</strong><span>6 道菜首单体验</span></div>
+            <div class="check-list">
+              <div class="check"><span>高清无水印</span><span class="chip">包含</span></div>
+              <div class="check"><span>保存门店风格</span><span class="chip">包含</span></div>
+              <div class="check"><span>不满意可重做一次</span><span class="chip">降低风险</span></div>
+            </div>
+            <button class="btn primary" data-action="unlock-pack">解锁 6 道菜菜单包</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="pack">
+        <div class="section-head">
+          <div>
+            <span class="badge">让用户想继续完成</span>
+            <h2>给他看到“还差 5 张就是一套”。</h2>
+          </div>
+          <p>用进度感制造留存：第一张已经做好，剩下的位置等他继续上传。</p>
+        </div>
+
+        <div class="pack-grid">
+          <div class="pack-item"><div class="pack-img done"><span class="tag">完成</span></div><span>汉堡套餐</span></div>
+          <div class="pack-item"><div class="pack-img next"><span class="tag">下一张</span></div><span>招牌热狗</span></div>
+          <div class="pack-item"><div class="pack-img locked"></div><span>披萨/主菜</span></div>
+          <div class="pack-item"><div class="pack-img locked"></div><span>饮品</span></div>
+          <div class="pack-item"><div class="pack-img locked"></div><span>小食</span></div>
+          <div class="pack-item"><div class="pack-img locked"></div><span>甜品</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div>
+            <span class="badge">复购抓手</span>
+            <h2>模板功能要藏在结果后面。</h2>
+          </div>
+          <p>不要让新用户调模板。等他点了喜欢、做过一套，再告诉他：下次新菜可以按这个样子直接做。</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature">
+            <span class="chip">自动保存</span>
+            <h3>我家常用效果</h3>
+            <p>老板点“喜欢这个”后自动保存，不用理解模板参数。</p>
+          </div>
+          <div class="feature">
+            <span class="chip">老用户再给</span>
+            <h3>简单调一下</h3>
+            <p>只给“更亮一点、背景干净点、菜大一点、保留桌面”这种按钮。</p>
+          </div>
+          <div class="feature">
+            <span class="chip">长期资产</span>
+            <h3>门店图片库</h3>
+            <p>历史好图、确认过的风格、新菜复用，形成持续回来用的理由。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="food99">
+        <div class="panel food99">
+          <div>
+            <span class="chip">99Food 是增值，不是入口门槛</span>
+            <h2 style="margin:12px 0 0;color:#fff">有 99Food 店铺？连接后自动匹配菜单。</h2>
+            <p>主功能不用授权也能用。连接 99Food 后，可以自动知道图片对应哪道菜，读取菜名、价格、分类和加料规则，再做整店整理。</p>
+          </div>
+          <button class="btn primary" data-action="connect-food99">连接 99Food</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+    const toast = $("#toast");
+    let likedStyle = "";
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function scrollToId(id) {
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function setDemo(mode) {
+      $$(".demo-switch button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.demo === mode);
+      });
+      if (mode === "start") scrollToId("start");
+      if (mode === "liked") {
+        likeStyle("外卖主图版", "platform", false);
+        scrollToId("deliverable");
+      }
+      if (mode === "paid") scrollToId("pack");
+      if (mode === "food99") scrollToId("food99");
+    }
+
+    function likeStyle(style, cardName, shouldScroll = true) {
+      likedStyle = style;
+      $$("[data-style-card]").forEach((card) => {
+        card.classList.toggle("liked", card.dataset.styleCard === cardName);
+      });
+      showToast(`已记住：${style}。下次新菜可以按这个效果做。`);
+      if (shouldScroll) scrollToId("deliverable");
+    }
+
+    document.addEventListener("click", (event) => {
+      const demoButton = event.target.closest("[data-demo]");
+      if (demoButton) {
+        setDemo(demoButton.dataset.demo);
+        return;
+      }
+
+      const scrollButton = event.target.closest("[data-scroll]");
+      if (scrollButton) {
+        scrollToId(scrollButton.dataset.scroll);
+        return;
+      }
+
+      const actionButton = event.target.closest("[data-action]");
+      if (!actionButton) return;
+
+      const action = actionButton.dataset.action;
+      if (action === "try-one") {
+        scrollToId("results");
+        showToast("已生成 3 个版本。让老板只选“喜欢哪个”，不要先调参数。");
+      }
+      if (action === "like-style") {
+        const card = actionButton.closest("[data-style-card]");
+        likeStyle(actionButton.dataset.style, card.dataset.styleCard);
+      }
+      if (action === "unlock-pack") {
+        showToast(likedStyle
+          ? `已按“${likedStyle}”生成 6 道菜菜单包。`
+          : "已解锁 6 道菜菜单包，并保存这家店的常用效果。");
+        scrollToId("pack");
+      }
+      if (action === "connect-food99") {
+        showToast("99Food 连接是增值能力：连接后可自动匹配菜单，不影响先做图片优化。");
+      }
+    });
+  </script>
+</body>
+</html>

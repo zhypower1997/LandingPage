@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>给餐饮老板的菜单图片助手</title>
+  <meta name="description" content="把手机拍的菜品照，整理成能上外卖平台的菜单图和菜品资料。">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171412;
+      --muted: #6f6862;
+      --soft: #f7f1e9;
+      --paper: #fffefd;
+      --line: rgba(23, 20, 18, .12);
+      --orange: #f47c00;
+      --orange-dark: #8b4600;
+      --orange-soft: #fff0dc;
+      --green: #1d8f58;
+      --green-soft: #e7f6ed;
+      --red: #cf3b32;
+      --red-soft: #ffeceb;
+      --blue: #285bd7;
+      --blue-soft: #eaf0ff;
+      --shadow: 0 24px 70px rgba(67, 43, 18, .16);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fffdf9 0%, var(--soft) 56%, #fff7ec 100%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; cursor: pointer; }
+    h1, h2, h3, h4, p { margin-top: 0; }
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 254, 253, .86);
+      border-bottom: 1px solid rgba(255,255,255,.72);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-inner {
+      width: min(1180px, calc(100% - 36px));
+      min-height: 66px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 950;
+    }
+
+    .mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, #ffad46, var(--orange));
+      box-shadow: 0 12px 28px rgba(244, 124, 0, .26);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 16px;
+      background: #fff;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 950;
+      box-shadow: 0 12px 28px rgba(23,20,18,.06);
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      border: 0;
+      color: #fff;
+      background: linear-gradient(135deg, #ff9d35, var(--orange));
+      box-shadow: 0 17px 36px rgba(244,124,0,.28);
+    }
+
+    .hero {
+      min-height: 92vh;
+      padding: 116px 0 70px;
+      display: grid;
+      align-items: end;
+      background:
+        linear-gradient(90deg, rgba(23,20,18,.86) 0%, rgba(23,20,18,.58) 45%, rgba(23,20,18,.08) 100%),
+        url("assets/beal.jpeg") center / cover no-repeat;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 140px;
+      background: linear-gradient(180deg, transparent, rgba(247,241,233,.98));
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 22px;
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      min-height: 36px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: #fff;
+      background: rgba(255,255,255,.13);
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(44px, 7vw, 86px);
+      line-height: .98;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 680px;
+      color: rgba(255,255,255,.82);
+      font-size: clamp(19px, 2vw, 25px);
+      line-height: 1.52;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .hero .btn {
+      min-height: 60px;
+      padding: 0 24px;
+      font-size: 19px;
+    }
+
+    .hero .btn:not(.primary) {
+      color: #fff;
+      background: rgba(255,255,255,.12);
+      border-color: rgba(255,255,255,.22);
+      box-shadow: none;
+    }
+
+    .proof-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+      max-width: 760px;
+    }
+
+    .proof {
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .proof strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .proof span {
+      display: block;
+      margin-top: 6px;
+      color: rgba(255,255,255,.76);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .section {
+      padding: 54px 0 0;
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    h2 {
+      margin: 0;
+      max-width: 720px;
+      font-size: clamp(32px, 4.4vw, 54px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      max-width: 520px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .pill {
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 11px;
+      background: #fff;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      width: fit-content;
+      white-space: nowrap;
+    }
+
+    .pill.warn { color: var(--orange-dark); background: var(--orange-soft); border-color: rgba(244,124,0,.22); }
+    .pill.bad { color: var(--red); background: var(--red-soft); border-color: rgba(207,59,50,.2); }
+    .pill.good { color: var(--green); background: var(--green-soft); border-color: rgba(29,143,88,.2); }
+    .pill.blue { color: var(--blue); background: var(--blue-soft); border-color: rgba(40,91,215,.18); }
+
+    .loss-grid, .gain-grid, .case-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 18px 48px rgba(23,20,18,.08);
+      overflow: hidden;
+    }
+
+    .loss, .gain {
+      padding: 18px;
+      display: grid;
+      gap: 11px;
+    }
+
+    .loss strong, .gain strong {
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .loss strong { color: var(--red); }
+    .gain strong { color: var(--green); }
+
+    .loss h3, .gain h3, .plan h3, .faq h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .loss p, .gain p, .plan p, .faq p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .case {
+      display: grid;
+      grid-template-rows: 210px auto;
+    }
+
+    .case-img {
+      background: #eee center / cover no-repeat;
+      position: relative;
+    }
+
+    .case-img.burger { background-image: url("assets/hamberger.jpeg"); }
+    .case-img.hotdog { background-image: url("assets/hotdog.png"); background-size: contain; background-color: #fff; }
+    .case-img.fish { background-image: url("assets/fish.jpeg"); }
+
+    .case-body {
+      padding: 16px;
+      display: grid;
+      gap: 11px;
+    }
+
+    .case-body h3 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .case-body p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .case-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .case-metric {
+      border-radius: 14px;
+      padding: 10px;
+      background: var(--green-soft);
+      color: var(--green);
+      display: grid;
+      gap: 3px;
+      font-weight: 950;
+    }
+
+    .case-metric span {
+      color: #416654;
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 850;
+    }
+
+    .compare-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .photo-card {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .photo {
+      min-height: 390px;
+      border-radius: 18px;
+      background: #eee center / cover no-repeat;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .photo.before {
+      background-image: url("assets/hotdog.png");
+      background-size: contain;
+      background-color: #e7e0d5;
+      filter: saturate(.78) brightness(.78);
+    }
+
+    .photo.after {
+      background-image: url("assets/hotdog.png");
+      background-size: contain;
+      background-color: #fff7ec;
+      filter: saturate(1.14) brightness(1.08) contrast(1.06);
+    }
+
+    .photo-tag {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      min-height: 32px;
+      border-radius: 999px;
+      padding: 0 11px;
+      color: #fff;
+      background: rgba(23,20,18,.72);
+      display: inline-flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .photo-card h3 { margin: 0; font-size: 24px; }
+    .photo-card p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .data-table {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1.2fr .9fr .9fr;
+      min-height: 68px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+
+    .row:last-child { border-bottom: 0; }
+    .row > div {
+      padding: 16px;
+      font-weight: 850;
+    }
+
+    .row.head {
+      color: #fff;
+      background: #1b1512;
+    }
+
+    .row .bad {
+      color: var(--red);
+      background: var(--red-soft);
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .row .good {
+      color: var(--green);
+      background: var(--green-soft);
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .plan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 14px;
+    }
+
+    .plan {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .price {
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      color: var(--orange-dark);
+    }
+
+    .price strong {
+      font-size: 64px;
+      line-height: 1;
+    }
+
+    .deliverables {
+      display: grid;
+      gap: 9px;
+    }
+
+    .deliverable {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 900;
+    }
+
+    .pack {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .pack-item {
+      min-height: 190px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 136px auto;
+    }
+
+    .pack-img {
+      background: #eee center / cover no-repeat;
+      position: relative;
+    }
+
+    .pack-img.one { background-image: url("assets/hamberger.jpeg"); }
+    .pack-img.two { background-image: url("assets/beal.jpeg"); }
+    .pack-img.three { background-image: url("assets/fish.jpeg"); }
+    .pack-img.four { background-image: url("assets/hotdog.png"); background-size: contain; background-color: #fff; }
+    .pack-img.empty {
+      background: repeating-linear-gradient(45deg, #f3ede4 0 10px, #e6ded2 10px 20px);
+    }
+
+    .pack-item span {
+      padding: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .sticky-cta {
+      position: sticky;
+      bottom: 14px;
+      z-index: 10;
+      margin-top: 26px;
+    }
+
+    .sticky-inner {
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 22px;
+      padding: 12px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 20px 60px rgba(23,20,18,.14);
+      backdrop-filter: blur(18px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .sticky-inner strong { display: block; }
+    .sticky-inner span { color: var(--muted); font-size: 13px; }
+
+    .food99 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 22px;
+      color: #fff;
+      background: linear-gradient(135deg, #1c1512, #3b2511);
+    }
+
+    .food99 p { color: rgba(255,255,255,.72); margin: 8px 0 0; line-height: 1.5; }
+    .food99 .pill { color: #fff; border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.12); }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .faq { padding: 18px; }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 360px;
+      z-index: 30;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #fff;
+      background: #171412;
+      box-shadow: 0 24px 70px rgba(23,20,18,.24);
+      font-weight: 850;
+      line-height: 1.42;
+      transform: translateY(120%);
+      opacity: 0;
+      transition: .22s ease;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    @media (max-width: 940px) {
+      .hero { min-height: auto; padding-top: 110px; }
+      .proof-row, .loss-grid, .gain-grid, .case-grid, .compare-wrap, .plan-grid, .food99, .faq-grid { grid-template-columns: 1fr; }
+      .section-head { display: grid; }
+      .row { grid-template-columns: 1fr; }
+      .row .bad, .row .good { min-height: 56px; }
+      .sticky-inner { align-items: stretch; flex-direction: column; }
+      .sticky-inner .btn { width: 100%; }
+    }
+
+    @media (max-width: 620px) {
+      .shell, .nav-inner { width: min(100% - 24px, 1180px); }
+      .nav-actions .btn:not(.primary) { display: none; }
+      .hero { padding-bottom: 44px; }
+      .hero .btn { width: 100%; }
+      .pack { grid-template-columns: 1fr 1fr; }
+      .photo { min-height: 300px; }
+      .toast { left: 14px; right: 14px; bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="顶部导航">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="mark">图</div>
+        <div>菜单图片助手</div>
+      </div>
+      <div class="nav-actions">
+        <a class="btn" href="#compare">看对比</a>
+        <a class="btn" href="#price">看价格</a>
+        <button class="btn primary" data-action="trial">免费试一张</button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="shell hero-content">
+      <span class="eyebrow">给餐饮老板：先试效果，满意再付费</span>
+      <h1>别让好菜，输在一张黑乎乎的照片上。</h1>
+      <p>你只管把菜拍给我。我们帮你修亮、裁好、写好介绍，整理成能发给店员上传外卖平台的菜单资料。</p>
+      <div class="hero-actions">
+        <button class="btn primary" data-action="trial">免费试一张</button>
+        <a class="btn" href="#loss">先看看不用会亏什么</a>
+      </div>
+      <div class="proof-row">
+        <div class="proof"><strong>先看图</strong><span>先出一张预览，看得见效果再决定</span></div>
+        <div class="proof"><strong>¥49</strong><span>先做 6 道菜，够发一组套餐和招牌菜</span></div>
+        <div class="proof"><strong>0 门槛</strong><span>不用注册，不用连接 99Food，也能先用</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="section" id="loss">
+      <div class="section-head">
+        <div>
+          <span class="pill bad">不用会吃亏</span>
+          <h2>照片不好看，不是小事，是顾客没点开。</h2>
+        </div>
+        <p>老板最亏的不是花钱修图，而是菜明明不错，顾客在手机上没看出来。</p>
+      </div>
+      <div class="loss-grid">
+        <div class="card loss">
+          <strong>一划</strong>
+          <h3>顾客先看图，不先看文字</h3>
+          <p>图暗、背景乱、菜看不清，顾客还没看价格就划走了。</p>
+        </div>
+        <div class="card loss">
+          <strong>一下午</strong>
+          <h3>找人拍一次太贵</h3>
+          <p>约摄影、摆盘、等修图，老板和店员都要陪着耗时间。</p>
+        </div>
+        <div class="card loss">
+          <strong>每次</strong>
+          <h3>员工每次拍出来都不一样</h3>
+          <p>桌面、灯光、角度不统一，菜单看起来像临时拼出来的。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="compare">
+      <div class="section-head">
+        <div>
+          <span class="pill warn">一眼看懂</span>
+          <h2>我们不把菜修假，只把它修得更像“能点”。</h2>
+        </div>
+        <p>不改菜量，不乱加不存在的配料。默认做真实提亮、清理杂乱、裁成平台合适尺寸。</p>
+      </div>
+      <div class="compare-wrap">
+        <div class="card photo-card">
+          <div class="photo before"><span class="photo-tag">不用我们：手机原图</span></div>
+          <h3>老板自己也知道：这图不够馋</h3>
+          <p>手机拍出来偏暗，菜和背景混在一起，平台列表里不抢眼。</p>
+        </div>
+        <div class="card photo-card">
+          <div class="photo after"><span class="photo-tag">用了我们：菜单图</span></div>
+          <h3>菜还是这道菜，但卖相顺眼了</h3>
+          <p>不乱加料、不改分量，只把亮度、构图和尺寸整理好。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="pill good">用了会提升</span>
+          <h2>老板买的不是 AI，是“今天就能拿去用”。</h2>
+        </div>
+        <p>以下为 6 道菜首单示例测算，用来说明一次菜单包能解决哪些实际问题。</p>
+      </div>
+      <div class="data-table">
+        <div class="row head">
+          <div>老板关心的事</div>
+          <div>不用我们</div>
+          <div>用了我们</div>
+        </div>
+        <div class="row">
+          <div>做 6 道菜菜单图</div>
+          <div class="bad">自己拍修：约 2-4 小时</div>
+          <div class="good">上传照片：约 10 分钟提交</div>
+        </div>
+        <div class="row">
+          <div>图片是否统一</div>
+          <div class="bad">每张光线、背景都不一样</div>
+          <div class="good">按同一门店效果整理</div>
+        </div>
+        <div class="row">
+          <div>上新菜速度</div>
+          <div class="bad">等摄影或等员工慢慢拍</div>
+          <div class="good">当天出一套可用资料</div>
+        </div>
+        <div class="row">
+          <div>付费风险</div>
+          <div class="bad">拍完不满意也花钱</div>
+          <div class="good">先免费试一张，不满意不买</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="pill good">拟真商家案例</span>
+          <h2>可以放这种“附近小店也在用”的效果故事。</h2>
+        </div>
+        <p>这些是 demo 占位案例，表达方式按真实商家口吻写。上线前可替换成真实客户数据。</p>
+      </div>
+      <div class="case-grid">
+        <article class="card case">
+          <div class="case-img burger"><span class="photo-tag">汉堡店</span></div>
+          <div class="case-body">
+            <h3>阿强汉堡：先做 6 张招牌图</h3>
+            <p>原来图偏暗，套餐看不出分量。先把汉堡、热狗、饮品做成一组统一风格。</p>
+            <div class="case-metrics">
+              <div class="case-metric">6 张<span>当天拿图</span></div>
+              <div class="case-metric">+32%<span>主图点击示例</span></div>
+              <div class="case-metric">2 次<span>回来复用</span></div>
+            </div>
+          </div>
+        </article>
+        <article class="card case">
+          <div class="case-img fish"><span class="photo-tag">海鲜小店</span></div>
+          <div class="case-body">
+            <h3>老街海鲜饭：只想拍清楚</h3>
+            <p>老板不想换背景，只想真实一点。保留原盘子和桌面，重点把主体提亮。</p>
+            <div class="case-metrics">
+              <div class="case-metric">18 分钟<span>提交素材</span></div>
+              <div class="case-metric">+21%<span>加购示例</span></div>
+              <div class="case-metric">0 次<span>没改菜量</span></div>
+            </div>
+          </div>
+        </article>
+        <article class="card case">
+          <div class="case-img hotdog"><span class="photo-tag">快餐档口</span></div>
+          <div class="case-body">
+            <h3>小李热狗：新菜不用等摄影</h3>
+            <p>店员手机拍完直接上传，按上次喜欢的效果做，第二天就能上新菜单。</p>
+            <div class="case-metrics">
+              <div class="case-metric">1 套<span>门店风格</span></div>
+              <div class="case-metric">+5 道<span>新菜上架</span></div>
+              <div class="case-metric">¥49<span>先试一组</span></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="price">
+      <div class="section-head">
+        <div>
+          <span class="pill warn">首单最好卖这个</span>
+          <h2>不是卖修图，是帮老板凑齐一组能上架的菜。</h2>
+        </div>
+        <p>单张太小，整店太贵。6 道菜刚好够做“招牌菜 + 套餐 + 饮品小食”。</p>
+      </div>
+      <div class="plan-grid">
+        <div class="card plan">
+          <span class="pill good">首单体验</span>
+          <h3>6 道菜菜单资料包</h3>
+          <div class="price"><strong>¥49</strong><span>满意后再继续做整店</span></div>
+          <p>适合第一次试用：先免费看一张，喜欢后再解锁一套。</p>
+          <div class="deliverables">
+            <div class="deliverable"><span>6 张高清菜单图</span><span class="pill good">包含</span></div>
+            <div class="deliverable"><span>6 条菜品介绍</span><span class="pill good">包含</span></div>
+            <div class="deliverable"><span>外卖平台尺寸</span><span class="pill good">包含</span></div>
+            <div class="deliverable"><span>保存门店常用效果</span><span class="pill blue">下次复用</span></div>
+          </div>
+          <button class="btn primary" data-action="buy">免费试一张，喜欢再做 6 道</button>
+        </div>
+        <div class="card pack" aria-label="菜单包预览">
+          <div class="pack-item"><div class="pack-img one"><span class="photo-tag">完成</span></div><span>招牌汉堡</span></div>
+          <div class="pack-item"><div class="pack-img two"><span class="photo-tag">完成</span></div><span>热卖主菜</span></div>
+          <div class="pack-item"><div class="pack-img three"><span class="photo-tag">完成</span></div><span>海鲜菜</span></div>
+          <div class="pack-item"><div class="pack-img four"><span class="photo-tag">下一张</span></div><span>招牌热狗</span></div>
+          <div class="pack-item"><div class="pack-img empty"></div><span>饮品</span></div>
+          <div class="pack-item"><div class="pack-img empty"></div><span>甜品</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="pill blue">后续复购</span>
+          <h2>下次新菜，不用重新说要求。</h2>
+        </div>
+        <p>老板喜欢某个效果后，系统记住“这家店常用效果”。以后员工随便拍，也能统一成同一种菜单风格。</p>
+      </div>
+      <div class="gain-grid">
+        <div class="card gain">
+          <strong>1 次</strong>
+          <h3>选喜欢效果</h3>
+          <p>不用调模板。老板只点一次“喜欢这个”，系统自动记住。</p>
+        </div>
+        <div class="card gain">
+          <strong>每周</strong>
+          <h3>新菜继续套用</h3>
+          <p>上新、活动、套餐、饮品图，都可以按上次效果继续做。</p>
+        </div>
+        <div class="card gain">
+          <strong>整店</strong>
+          <h3>图片资产留下来</h3>
+          <p>历史图、确认过的风格、菜品介绍都能复用，不是一次性修图。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="card food99">
+        <div>
+          <span class="pill">99Food 是额外增值</span>
+          <h2 style="color:#fff;margin-top:12px">有 99Food 店铺？连接后少填很多东西。</h2>
+          <p>不连接也能做图片优化。连接后，我们可以自动读取菜名、分类、价格和加料组，把做好的图匹配回菜单。</p>
+        </div>
+        <button class="btn primary" data-action="food99">了解自动匹配菜单</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <span class="pill warn">老板常问</span>
+          <h2>先把顾虑说清楚。</h2>
+        </div>
+      </div>
+      <div class="faq-grid">
+        <div class="card faq">
+          <h3>会不会看起来很假？</h3>
+          <p>默认做真实修整：提亮、裁切、清理杂乱。不改菜量，不加不存在的食材。</p>
+        </div>
+        <div class="card faq">
+          <h3>我不会操作怎么办？</h3>
+          <p>只需要上传照片。第一次不让你调参数，先给你看结果，喜欢哪个点哪个。</p>
+        </div>
+        <div class="card faq">
+          <h3>能不能直接上平台？</h3>
+          <p>菜单包会给外卖平台尺寸、菜品介绍和高清图。99Food 连接后还能自动匹配菜单。</p>
+        </div>
+        <div class="card faq">
+          <h3>不满意怎么办？</h3>
+          <p>先免费试一张。首单 6 道菜不满意，可以按同一方向重做一次。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="sticky-cta">
+      <div class="sticky-inner">
+        <div>
+          <strong>先免费试一张，看得见效果再付费。</strong>
+          <span>适合外卖平台主图、套餐图、新菜上架图。</span>
+        </div>
+        <button class="btn primary" data-action="trial">免费试一张</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const toast = document.querySelector("#toast");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    document.addEventListener("click", (event) => {
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (!action) return;
+      if (action === "trial") {
+        showToast("已进入免费试一张：老板只要上传菜品照，先看效果。");
+        document.querySelector("#compare").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (action === "buy") {
+        showToast("首单逻辑：先免费试一张，喜欢后再解锁 6 道菜菜单包。");
+      }
+      if (action === "food99") {
+        showToast("99Food 是增值功能：连接后自动匹配菜单，不影响先做图片。");
+      }
+    });
+  </script>
+</body>
+</html>

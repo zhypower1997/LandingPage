@@ -47,7 +47,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
 
@@ -95,6 +95,10 @@
       .grid { grid-template-columns: 1fr; }
       a { min-height: 180px; }
     }
+
+    @media (min-width: 721px) and (max-width: 1020px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -111,6 +115,11 @@
         <strong>Product Demo</strong>
         <h2>智能餐图工坊</h2>
         <span>中文产品原型演示页面，适合内部展示和产品沟通。</span>
+      </a>
+      <a href="sites/99food-menu-os/">
+        <strong>99Food Menu</strong>
+        <h2>菜单照片管家</h2>
+        <span>有授权就自动检查整店菜单；没授权也能先用手机照片做菜单图。</span>
       </a>
     </div>
   </main>
